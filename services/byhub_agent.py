@@ -180,6 +180,35 @@ def run_agent(query, context=None):
     conn.close()
 
     prefs["raw_query"] = merged_query
+
+    # Conversation-first behavior: broad shopping requests should gather the
+    # missing decision criteria before dumping a catalog. A real shopping
+    # assistant should understand the task first, then retrieve products.
+    conversation_only = prefs["intent"] in ("greeting", "capabilities")
+    broad_terms = {
+        "headphones": ("Audio", "What is your comfortable budget for headphones?"),
+        "earbuds": ("Audio", "What is your comfortable budget for earbuds?"),
+        "camera": ("Cameras", "What's your budget for the camera, and what will you mainly use it for?"),
+        "cameras": ("Cameras", "What's your budget for the camera, and what will you mainly use it for?"),
+        "phone": ("Mobiles", "What's your budget for the phone, and what matters most: camera, performance, battery, or display?"),
+        "mobile": ("Mobiles", "What's your budget for the phone, and what matters most: camera, performance, battery, or display?"),
+        "smartphone": ("Mobiles", "What's your budget for the phone, and what matters most: camera, performance, battery, or display?"),
+    }
+    q_simple = (query or "").strip().lower()
+    broad_match = next((v for k, v in broad_terms.items() if re.search(r"\\b" + re.escape(k) + r"\\b", q_simple)), None)
+
+    if broad_match and prefs["intent"] == "product_search" and prefs["budget_max"] is None and not prefs["priorities"]:
+        category, question = broad_match
+        return {
+            "version": "1.1",
+            "intent": "product_search",
+            "preferences": prefs,
+            "message": f"Absolutely — I can help you find the right {q_simple}.",
+            "follow_up": question,
+            "products": [],
+            "context": {"last_query": query, "messages": prior[-8:] if isinstance(prior, list) else []},
+        }
+
     ranked = sorted(products, key=lambda p: (-_match_score(p, prefs), p["name"]))
 
     if prefs["budget_max"] is not None:
