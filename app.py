@@ -225,7 +225,9 @@ def health():
 def products(q: Optional[str] = None, category: Optional[str] = None, limit: int = 24):
     limit = min(max(limit,1),100)
     c = db()
-    sql = "SELECT * FROM products WHERE 1=1"
+    # The deployed app may have been initialized by an earlier ByHub schema.
+    # Read the common product fields explicitly so extra legacy columns do not matter.
+    sql = "SELECT id,name,category,image,mrp,avg,low,tracked_days,history_url,updated_at FROM products WHERE 1=1"
     args = []
     if q:
         sql += " AND (name LIKE ? OR category LIKE ?)"
@@ -250,7 +252,7 @@ def search(q: Optional[str] = None, category: Optional[str] = None, limit: int =
 @app.get("/api/categories")
 def categories():
     c=db()
-    rows=c.execute("SELECT category,COUNT(*) AS count FROM products GROUP BY category ORDER BY category").fetchall()
+    rows=c.execute("SELECT category,COUNT(*) AS count FROM products WHERE category IS NOT NULL AND category != '' GROUP BY category ORDER BY category").fetchall()
     c.close()
     return [dict(r) for r in rows]
 
