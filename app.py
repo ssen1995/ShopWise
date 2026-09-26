@@ -264,6 +264,24 @@ def image_proxy(url: str = Query(..., max_length=2000)):
         headers={"Cache-Control": "public, max-age=86400"},
     )
 
+class DiscoveryObservationRequest(BaseModel):
+    product_id: str
+    retailer: str
+    price: float
+    url: str
+    source_url: Optional[str] = None
+    source_type: str = "manual_web_research"
+    currency: str = "INR"
+    available: bool = True
+
+@app.post("/api/discovery/observation")
+def discovery_observation(req: DiscoveryObservationRequest):
+    return record_discovery_observation(DiscoveryObservation(
+        product_id=req.product_id, retailer=req.retailer, price=req.price,
+        url=req.url, source_url=req.source_url, source_type=req.source_type,
+        currency=req.currency, available=req.available
+    ))
+
 @app.post("/api/sync")
 def sync():
     return {
