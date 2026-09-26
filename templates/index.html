@@ -112,9 +112,7 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 .ai-focus-active > div:first-child{
   max-width:900px;
 }
-.ai-focus-active > div:first-child .eyebrow{
-  font-size:10px;
-}
+.ai-focus-active > div:first-child .eyebrow{font-size:10px}
 .ai-focus-active > div:first-child h1{
   font-size:30px;
   letter-spacing:-1.5px;
@@ -125,119 +123,77 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
   line-height:1.4;
   max-width:850px;
 }
-.ai-focus-active > div:first-child .proof{
-  display:none;
-}
+.ai-focus-active > div:first-child .proof{display:none}
 .ai-focus-active #aiCard{
-  position:relative;
   width:100%;
-  padding:28px;
-  min-height:620px;
+  padding:22px;
+  min-height:0;
+  height:min(560px, calc(100vh - 250px));
+  max-height:560px;
   display:flex;
   flex-direction:column;
+  position:relative;
+  overflow:hidden;
 }
-.ai-focus-active #aiCard .agentHead,
-.ai-focus-active #aiCard > p,
-.ai-focus-active #aiCard > input,
-.ai-focus-active #aiCard > .chips,
-.ai-focus-active #aiCard > div:not(#agentResult){
+.ai-focus-active #aiCard .agentHead{flex-shrink:0}
+.ai-focus-active #aiCard > p{
   flex-shrink:0;
+  margin:7px 0;
+  font-size:12px;
 }
+.ai-focus-active #aiCard > .chips{display:none}
 .ai-focus-active #agentResult{
   order:5;
-  display:block;
+  display:flex;
   flex:1 1 auto;
-  min-height:390px;
+  min-height:0;
+  height:auto;
   max-height:none;
-  margin:14px 0 0;
+  margin:10px 0 68px;
   background:#f4f8f6;
   overflow:hidden;
-  display:flex;
-  flex-direction:column;
 }
 .ai-focus-active #chat{
   flex:1 1 auto;
   min-height:0;
   max-height:none;
   overflow-y:auto;
-  padding:18px 22px 12px;
+  padding:14px 18px;
   scroll-behavior:smooth;
 }
 .ai-focus-active #aiBox{
-  order:1;
-}
-.ai-focus-active #aiCard #agentResult + *{
-  order:10;
-}
-/* Move the composer to the bottom of the conversation, like a chat app. */
-.ai-focus-active #aiCard > #aiBox{
   position:absolute;
-  left:28px;
-  right:28px;
-  bottom:28px;
-  width:calc(100% - 56px);
+  left:22px;
+  right:82px;
+  bottom:22px;
+  width:auto;
+  height:50px;
   margin:0;
-  z-index:2;
-}
-.ai-focus-active #aiCard > .chips{
-  display:none;
-}
-.ai-focus-active #aiCard > .agentHead,
-.ai-focus-active #aiCard > p{
-  position:relative;
-  z-index:1;
-  opacity:.72;
+  font-size:15px;
+  z-index:4;
+  background:#fff;
 }
 .ai-focus-active #aiCard > div[style*="display:flex"]{
   position:absolute;
-  right:28px;
-  bottom:35px;
-  z-index:3;
+  right:22px;
+  bottom:22px;
+  z-index:5;
   margin:0;
 }
 .ai-focus-active #aiCard > div[style*="display:flex"] .btn{
+  display:block;
+  width:52px;
+  height:50px;
+  padding:0;
+  font-size:0;
+  border-radius:14px;
+}
+.ai-focus-active #aiCard > div[style*="display:flex"] .btn::after{
+  content:"➤";
+  font-size:18px;
+}
+.ai-focus-active #aiCard > div[style*="display:flex"] button:last-child{
   display:none;
-}
-.ai-focus-active #aiCard .chatMsg:first-child{
-  margin-top:0;
-}
-.ai-focus-active #aiCard #agentResult{
-  padding-bottom:78px;
-}
-.ai-focus-active #aiCard .aiIntro{
-  font-size: 13px !important;
-  line-height: 1.35 !important;
-  margin-bottom: 8px !important;
-}
-.ai-focus-active #aiCard .aiIntro h2,
-.ai-focus-active #aiCard .aiIntro h3{
-  font-size: 17px !important;
-  margin: 0 0 4px !important;
-}
-.ai-focus-active #aiCard .aiPrompt,
-.ai-focus-active #aiCard .aiQuick,
-.ai-focus-active #aiCard .aiExamples{
-  font-size: 11px !important;
-}
-.ai-focus-active #aiCard .ai-chat-wrap{
-  order: 1;
-}
-.ai-focus-active #aiCard{
-  display:flex;
-  flex-direction:column;
-}
-.ai-focus-active #aiCard .ai-chat-wrap{
-  width:100%;
-  margin-top:8px;
-}
-.ai-focus-active #chat{
-  min-height: 420px;
-  max-height: 62vh;
-  font-size: 14px;
-}
-.ai-focus-active #aiBox{
-  font-size:15px;
-  min-height:52px;
 }
 </style></head>
 <body>
@@ -364,6 +320,12 @@ function fillAI(text){
   document.getElementById("aiBox").value=text;
   document.getElementById("aiBox").focus();
 }
+document.getElementById("aiBox")?.addEventListener("keydown", function(e){
+  if(e.key==="Enter" && !e.shiftKey){
+    e.preventDefault();
+    askAI();
+  }
+});
 
 function activateAIFocus(){
   const grid=document.getElementById("heroGrid");
