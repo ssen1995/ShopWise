@@ -12,7 +12,7 @@ from pydantic import BaseModel
 BASE = Path(__file__).resolve().parent
 DB = BASE / "shopwise.db"
 
-app = FastAPI(title="ShopWise API", version="0.2.0")
+app = FastAPI(title="ByHub API", version="0.2.0")
 
 STATIC = BASE / "static"
 TEMPLATES = BASE / "templates"
@@ -134,7 +134,7 @@ def product_dict(r):
         "offers": offers,
         "history": hist,
         "best_price": min((o["price"] for o in offers), default=None),
-        "source": "ShopWise database",
+        "source": "ByHub database",
     }
 
 @app.get("/")
@@ -142,7 +142,7 @@ def home():
     index = TEMPLATES / "index.html"
     if index.exists():
         return FileResponse(index)
-    return {"service": "ShopWise API", "docs": "/docs"}
+    return {"service": "ByHub API", "docs": "/docs"}
 
 @app.get("/api/health")
 def health():
@@ -236,13 +236,13 @@ def agent(req: AgentRequest):
             "id": p["id"], "name": p["name"], "best_price": cur,
             "avg": p["avg"], "low": p["low"],
             "gap_vs_avg_pct": round(gap, 1),
-            "offers": p["offers"], "image": p["image_url"],
+            "offers": p["offers"], "image": p["image"],
         })
 
     return {
         "intent": intent,
         "query": req.query,
-        "message": "Comparison generated from the ShopWise product database. Historical figures are published records currently seeded into this MVP; retailer APIs can replace these seeds after credentials are added.",
+        "message": "Comparison generated from the ByHub product database. Historical figures are published records currently seeded into this MVP; retailer APIs can replace these seeds after credentials are added.",
         "products": out,
     }
 
@@ -250,7 +250,7 @@ def agent(req: AgentRequest):
 def image_proxy(url: str = Query(..., max_length=2000)):
     r = requests.get(
         url,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; ShopWise/0.2)"},
+        headers={"User-Agent": "Mozilla/5.0 (compatible; ByHub/0.2)"},
         timeout=15,
     )
     if r.status_code >= 400:
