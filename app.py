@@ -81,6 +81,50 @@ def db():
 
 def init_db():
     c = db()
+
+    # Lightweight schema migration for databases created by earlier ByHub/ShopWise
+    # versions. Render may retain an older SQLite file between deploys.
+    existing = {row["name"] for row in c.execute("PRAGMA table_info(products)").fetchall()}
+    migrations = {
+        "image": "ALTER TABLE products ADD COLUMN image TEXT",
+        "avg": "ALTER TABLE products ADD COLUMN avg REAL",
+        "low": "ALTER TABLE products ADD COLUMN low REAL",
+    }
+    for col, statement in migrations.items():
+        if existing and col not in existing:
+            c.execute(statement)
+
+    # Copy values from the original schema when those columns exist.
+    existing = {row["name"] for row in c.execute("PRAGMA table_info(products)").fetchall()}
+    if {"image_url", "image"}.issubset(existing):
+        c.execute("UPDATE products SET image=image_url WHERE (image IS NULL OR image='') AND image_url IS NOT NULL")
+    if {"average_price", "avg"}.issubset(existing):
+        c.execute("UPDATE products SET avg=average_price WHERE avg IS NULL AND average_price IS NOT NULL")
+    if {"lowest_price", "low"}.issubset(existing):
+        c.execute("UPDATE products SET low=lowest_price WHERE low IS NULL AND lowest_price IS NOT NULL")
+
+    c.executescript("""
+    CREATE TABLE IF NOT EXISTS products(
+      id TEXT PRIMARY KEY, name TEXT, category TEXT, image TEXT,
+      mrp REAL, avg REAL, low REAL, tracked_days INTEGER,
+      history_url TEXT, updated_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS offers(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id TEXT, retailer TEXT, price REAL, url TEXT,
+      observed_at TEXT, UNIQUE(product_id, retailer)
+    );
+    CREATE TABLE IF NOT EXISTS price_history(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id TEXT, retailer TEXT, price REAL, observed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_history_product_time
+      ON price_history(product_id, observed_at);
+    CREATE TABLE IF NOT EXISTS observation_sources(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, product_id TEXT, retailer TEXT,
+      price REAL, source_type TEXT, source_url TEXT, observed_at TEXT
+    );
+    """)
     c.executescript("""
     CREATE TABLE IF NOT EXISTS products(
       id TEXT PRIMARY KEY, name TEXT, category TEXT, image TEXT,
