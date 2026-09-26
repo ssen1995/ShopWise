@@ -184,6 +184,13 @@ def product(pid: str):
         return Response(status_code=404)
     return product_dict(r)
 
+@app.get("/api/price-intelligence/{pid}")
+def get_price_intelligence(pid: str):
+    data = price_intelligence(pid)
+    if data is None:
+        return Response(status_code=404)
+    return data
+
 @app.get("/api/price-history/{pid}")
 def price_history(pid: str):
     c = db()
