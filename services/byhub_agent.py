@@ -212,11 +212,13 @@ def run_agent(query, context=None):
     # Search live retailer catalogs first. Seeded/local products are historical
     # intelligence records, not a substitute for genuine product discovery.
     from services.discovery import search_retailers
-    live_search = search_retailers(
-        merged_query,
-        limit_per_retailer=10,
-        max_price=prefs.get("budget_max"),
-    )
+    live_search = {"products": [], "enabled_retailers": [], "errors": []}
+    if prefs["intent"] not in ("greeting", "capabilities"):
+        live_search = search_retailers(
+            merged_query,
+            limit_per_retailer=10,
+            max_price=prefs.get("budget_max"),
+        )
     live_products = live_search["products"]
 
     if live_products:
