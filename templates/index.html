@@ -92,7 +92,8 @@ function productCard(p){
    '<div class="compare">'+offers.map(o=>'<span class="offer">'+esc(o.retailer)+' <b>'+money(o.price)+'</b></span>').join('')+'</div>'+
    '<div class="cardFoot"><a class="shop" href="'+esc(offers[0]?.url||'#')+'" target="_blank" rel="noopener">View retailer price →</a><button class="detailBtn" onclick="openProduct(\''+esc(p.id)+'\')">See price history & details</button></div></div></article>'
 }
-async function loadHome(){
+const FALLBACK_PRODUCTS = [
+ {id:'sony-wh1000xm6',name:'Sony WH-1000XM6',category:'Audio',image:'https://sony.scene7.com/is/image/sonyglobalsolutions/GGB-8071_Olive_Gray_Gallery-1?$originalDimensions
  try{
   const [pr,cr]=await Promise.all([
     fetch('/api/products?limit=24'),
@@ -109,6 +110,109 @@ async function loadHome(){
   document.getElementById('productsGrid').innerHTML='<div class="empty">Catalog temporarily unavailable. Please refresh in a moment.</div>';
   document.getElementById('dealsGrid').innerHTML='<div class="deal">Catalog data is temporarily unavailable.</div>';
   document.getElementById('intelGrid').innerHTML='<div class="empty">Price intelligence will appear when the catalog is available.</div>';
+ }
+}
+function renderCats(cs){
+ document.getElementById('cats').innerHTML=(cs||[]).map(x=>'<div class="cat" onclick="searchCat('+JSON.stringify(x.category)+')"><div class="catIcon">'+iconFor(x.category)+'</div><b>'+esc(x.category)+'</b><small>'+x.count+' product'+(x.count===1?'':'s')+'</small></div>').join('')||'<div class="empty">Categories will appear as products are added.</div>';
+}
+function searchCat(c){location.hash='products';fetch('/api/products?category='+encodeURIComponent(c)).then(r=>r.json()).then(renderProducts)}
+function renderProducts(ps){
+ document.getElementById('productsGrid').innerHTML=(ps||[]).map(productCard).join('')||'<div class="empty">No products found.</div>';
+ const deals=(ps||[]).map(p=>({...p,discount:p.mrp&&p.best_price?(1-p.best_price/p.mrp)*100:0})).sort((a,b)=>b.discount-a.discount).slice(0,6);
+ document.getElementById('dealsGrid').innerHTML=deals.map(p=>{
+   const gap=p.avg&&p.best_price?(p.best_price-p.avg)/p.avg*100:null;
+   const tag=gap!==null&&gap<=0?'Below average':(p.discount>=15?'High MRP discount':'Compare history');
+   return '<div class="deal"><div class="dealTop"><span style="font-size:11px;color:#687770">'+esc(p.category)+'</span><span class="dealTag">'+tag+'</span></div><h3>'+esc(p.name)+'</h3><div class="dealPrice">'+money(p.best_price)+'</div><div class="dealMeta">'+(p.mrp?'MRP '+money(p.mrp)+' · '+Math.round(p.discount)+'% below MRP':'Current retailer price')+'</div><div class="dealAction" onclick="openProduct(\''+esc(p.id)+'\')">Inspect price history →</div></div>'
+ }).join('');
+ document.getElementById('intelGrid').innerHTML=(ps||[]).slice(0,8).map(p=>{
+   const gap=p.avg&&p.best_price?(p.best_price-p.avg)/p.avg*100:null;
+   const text=gap===null?'Limited context':gap<=0?'Below stored average by '+Math.abs(gap).toFixed(1)+'%':'Above stored average by '+gap.toFixed(1)+'%';
+   return '<div class="intel" onclick="openProduct(\''+esc(p.id)+'\')" style="cursor:pointer"><h3>'+esc(p.name)+'</h3><div class="intelPrice">'+money(p.best_price)+'</div><div class="pill">'+text+'</div></div>'
+ }).join('');
+}
+async function runAgent(){
+ const q=document.getElementById('prompt').value.trim(); if(!q)return;
+ const btn=document.querySelector('.agent .btn'); btn.disabled=true; btn.textContent='Thinking…';
+ try{
+  const r=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
+  const d=await r.json();
+  document.getElementById('agentResult').classList.remove('hidden');
+  document.getElementById('agentMessage').textContent=d.message||'';
+  document.getElementById('agentCards').innerHTML=(d.products||[]).map(p=>'<div class="agentCard">'+(p.image?'<img src="'+img(p.image)+'" onerror="this.style.display=\'none\'">':'')+'<b>'+esc(p.name)+'</b><strong>'+money(p.best_price)+'</strong><div class="signal">'+esc(p.signal||'Compare history')+'</div><button class="detailBtn" onclick="openProduct(\''+esc(p.id)+'\')">Open →</button></div>').join('')||'<div class="empty">No close matches in the current catalog.</div>';
+ }catch(e){document.getElementById('agentMessage').textContent='ByHub AI is temporarily unavailable.'}
+ btn.disabled=false;btn.textContent='Ask ByHub AI →';
+}
+async function searchProducts(){
+ const q=document.getElementById('search').value.trim();
+ if(!q){location.href='/#products';return}
+ const r=await fetch('/api/search?q='+encodeURIComponent(q)); const ps=await r.json();
+ document.getElementById('homePage').classList.remove('hidden'); document.getElementById('productPage').classList.add('hidden');
+ renderProducts(ps); location.hash='products'; document.getElementById('products').scrollIntoView();
+}
+async function openProduct(pid,push=true){
+ if(push) history.pushState({},'', '/product/'+encodeURIComponent(pid));
+ document.getElementById('homePage').classList.add('hidden'); document.getElementById('productPage').classList.remove('hidden');
+ document.getElementById('detailContent').innerHTML='<div class="loading">Loading product intelligence…</div>';
+ window.scrollTo({top:0,behavior:'smooth'});
+ const [p,i]=await Promise.all([fetch('/api/products/'+encodeURIComponent(pid)).then(r=>r.json()),fetch('/api/price-intelligence/'+encodeURIComponent(pid)).then(r=>r.json())]);
+ renderDetail(p,i);
+}
+function renderDetail(p,i){
+ const offers=p.offers||[];
+ const gap=i.vs_average_pct;
+ let status=gap===null?'Limited data':gap<=0?'Below stored average':gap<5?'Close to average':'Above stored average';
+ document.getElementById('detailContent').innerHTML=
+ '<div class="productHero"><div class="detailImage">'+(p.image?'<img src="'+img(p.image)+'" alt="'+esc(p.name)+'" onerror="this.outerHTML=fallbackImage(\''+esc(p.name).replace(/'/g,"\\'")+'\')">':fallbackImage(p.name))+'</div>'+
+ '<div><div class="detailCategory">'+esc(p.category)+'</div><h1 class="detailTitle">'+esc(p.name)+'</h1><div class="detailPrice">'+money(p.best_price)+'</div><div class="detailMrp">'+(p.mrp?'MRP '+money(p.mrp)+' · '+(i.below_mrp_pct||0).toFixed(0)+'% below MRP':'')+'</div>'+
+ '<div class="statRow"><div class="stat"><small>Stored average</small><b>'+money(i.average_price)+'</b></div><div class="stat"><small>Published low</small><b>'+money(i.reported_low)+'</b></div><div class="stat"><small>Observed chart low</small><b>'+money(i.observed_chart_low)+'</b></div><div class="stat"><small>Tracked</small><b>'+esc(String(p.tracked_days||'—'))+' days</b></div></div>'+
+ '<div class="buywait"><b>'+status+'.</b> '+(gap===null?'The catalog needs more observations before a stronger price-position signal can be made.':gap<=0?'Today is at or below the stored average; the chart shows how far it is from observed lows.':'Today is above the stored average, so checking the price history before buying may be useful.')+'</div>'+
+ '<div class="retailers"><h3>Retailer prices</h3>'+offers.map(o=>'<div class="retailer"><div class="retailerName">'+esc(o.retailer)+'</div><div class="retailerPrice">'+money(o.price)+'</div><a class="shop" href="'+esc(o.url)+'" target="_blank" rel="noopener">Shop →</a></div>').join('')+'</div></div></div>'+
+ '<div class="chartCard"><div class="chartHeader"><h2>Price history</h2><span>'+i.observations+' ByHub-stored observations · historical reference spans '+esc(String(p.tracked_days||0))+' days</span></div><div id="chart" class="chart"></div><div class="chartNote">Chart points are observations currently stored by ByHub. The published low/average may reflect a longer tracking record than the charted observations.</div><p style="margin-top:12px"><a class="link" href="'+esc(p.history_url||'#')+'" target="_blank" rel="noopener">View historical source →</a></p></div>';
+ drawChart(i.chart,i.average_price,i.reported_low,i.current_price);
+}
+function drawChart(points,avg,low,current){
+ const el=document.getElementById('chart'); if(!el||!points?.length){if(el)el.innerHTML='<div class="empty">Not enough observations for a chart yet.</div>';return}
+ const W=900,H=270,P={l:58,r:20,t:20,b:38}; const vals=points.map(x=>x.price);
+ const min=Math.min(...vals,low||Infinity),max=Math.max(...vals,current||0,avg||0); const range=Math.max(max-min,1);
+ const x=k=>P.l+(k/(points.length-1||1))*(W-P.l-P.r), y=v=>P.t+(1-(v-min)/range)*(H-P.t-P.b);
+ const path=points.map((p,k)=>(k?'L':'M')+x(k).toFixed(1)+' '+y(p.price).toFixed(1)).join(' ');
+ const grid=[0,.5,1].map(t=>{const v=min+range*t;return '<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#e5ece8"/><text x="0" y="'+(y(v)+4)+'" font-size="11" fill="#718078">'+money(v)+'</text>'}).join('');
+ const dots=points.map((p,k)=>'<circle cx="'+x(k)+'" cy="'+y(p.price)+'" r="4" fill="#0b6b52"><title>'+p.date+' · '+money(p.price)+'</title></circle>').join('');
+ const avgLine=avg?'<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="#e9a93a" stroke-dasharray="6 5"/><text x="'+(W-P.r-105)+'" y="'+(y(avg)-6)+'" font-size="10" fill="#a16e12">avg '+money(avg)+'</text>':'';
+ el.innerHTML='<svg viewBox="0 0 '+W+' '+H" role="img" aria-label="Price history chart">'+grid+avgLine+'<path d="'+path+'" fill="none" stroke="#0b6b52" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg>';
+}
+function goHome(){history.pushState({},'', '/');document.getElementById('productPage').classList.add('hidden');document.getElementById('homePage').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+window.addEventListener('popstate',route);
+function route(){
+ const m=location.pathname.match(/^\/product\/([^/]+)/);
+ if(m){openProduct(decodeURIComponent(m[1]),false);return}
+ document.getElementById('productPage').classList.add('hidden');document.getElementById('homePage').classList.remove('hidden');
+}
+document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')searchProducts()});
+loadHome();
+if(location.pathname!=='/') route();
+</script>
+</body>
+</html>,mrp:49990,avg:39139,low:34989,tracked_days:361,best_price:39651,offers:[{retailer:'Amazon',price:39651,url:'https://www.amazon.in/s?k=Sony+WH-1000XM6'},{retailer:'Flipkart',price:39990,url:'https://www.flipkart.com/sony-wh-1000xm6-wireless-noise-cancellation-ai-reduction-bluetooth-wired/p/itmd27e0df955122'}],history:[{date:'2025-12-19',price:37989},{date:'2026-01-16',price:37765},{date:'2026-03-09',price:37989},{date:'2026-07-03',price:35990},{date:'2026-08-07',price:37989},{date:'2026-09-10',price:39990'}],history_url:'https://pricehistory.app/p/sony-wh-1000xm6-best-wireless-noise-canceling-8jeyRtce'},
+ {id:'canon-eos-r50',name:'Canon EOS R50 + RF-S 18-45mm',category:'Cameras',image:'https://heyjimmy.in/wp-content/uploads/2023/03/Canon-EOS-R50-Mirrorless-Camera-with-RF-S18-45mm-F4.5-6.3-IS-STM-Lens-Online-Buy-Mumbai-India.jpg',mrp:75995,avg:65557,low:52490,tracked_days:1244,best_price:66990,offers:[{retailer:'Amazon',price:66990,url:'https://www.amazon.in/s?k=Canon+EOS+R50+18-45mm'}],history:[{date:'2025-09-22',price:57990},{date:'2025-10-04',price:58990},{date:'2026-03-06',price:59991},{date:'2026-07-08',price:64990},{date:'2026-09-26',price:66990}],history_url:'https://pricehistory.app/p/canon-eos-r50-mirrorless-camera-body-rf-6CeZVo2h'},
+ {id:'samsung-s25-256',name:'Samsung Galaxy S25 256GB',category:'Mobiles',image:'https://reimg-teknosa-cloud-prod.mncdn.com/mnresize/600/600/productimage/125079836/125079836_0_MC/100328153.png',mrp:84999,avg:73112,low:62990,tracked_days:394,best_price:79999,offers:[{retailer:'Flipkart',price:79999,url:'https://www.flipkart.com/search?q=Samsung%20Galaxy%20S25%20256GB'}],history:[{date:'2026-07-19',price:69999},{date:'2026-07-22',price:79999},{date:'2026-07-31',price:65999},{date:'2026-08-05',price:79999},{date:'2026-08-10',price:68999},{date:'2026-09-17',price:79999}],history_url:'https://www.cheapestinindia.com/price-history/galaxy-s25-5g-icyblue-256-gb--685f1e45206b1ef222944c8c'},
+ {id:'airpods-pro-3',name:'Apple AirPods Pro 3',category:'Audio',image:'https://m.media-amazon.com/images/I/61SUj2aKoEL._SL1500_.jpg',mrp:25900,avg:24707,low:17990,tracked_days:338,best_price:25899,offers:[{retailer:'Amazon',price:25899,url:'https://www.amazon.in/s?k=AirPods+Pro+3'}],history:[{date:'2026-01-16',price:24490},{date:'2026-02-06',price:17990},{date:'2026-05-22',price:23990},{date:'2026-06-16',price:23990},{date:'2026-09-10',price:25899}],history_url:'https://pricehistory.app/p/apple-airpods-pro-3-wireless-earbuds-active-5UXzXASj'}
+];
+const FALLBACK_CATEGORIES=[{category:'Audio',count:2},{category:'Cameras',count:1},{category:'Mobiles',count:1}];
+function useFallback(){ return FALLBACK_PRODUCTS.map(p=>({...p,source:'ByHub research snapshot'})); }
+
+async function loadHome(){
+ try{
+  const [pr,cr]=await Promise.all([fetch('/api/products?limit=24'),fetch('/api/categories')]);
+  let ps=pr.ok?await pr.json():[];
+  let cs=cr.ok?await cr.json():[];
+  // Never leave the storefront blank if the backend is sleeping, unavailable, or returns an empty catalog.
+  if(!Array.isArray(ps)||ps.length===0){ps=useFallback();cs=FALLBACK_CATEGORIES}
+  if(!Array.isArray(cs)||cs.length===0)cs=FALLBACK_CATEGORIES;
+  renderCats(cs); renderProducts(ps);
+ }catch(e){
+  const ps=useFallback();
+  renderCats(FALLBACK_CATEGORIES); renderProducts(ps);
  }
 }
 function renderCats(cs){
