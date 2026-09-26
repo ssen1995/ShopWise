@@ -158,12 +158,19 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
   flex:1 1 auto;
   min-height:0;
   max-height:none;
-  overflow-y:scroll;
+  overflow-y:auto;
   scrollbar-width:thin;
-  scrollbar-color:#aab8b2 #edf2ef;
-  padding:14px 18px 24px;
+  scrollbar-color:#9aa9a3 #e6ece9;
+  padding:14px 18px 90px;
   scroll-behavior:smooth;
+  overscroll-behavior:contain;
 }
+.ai-focus-active #chat::-webkit-scrollbar{width:9px}
+.ai-focus-active #chat::-webkit-scrollbar-track{background:#e6ece9;border-radius:10px}
+.ai-focus-active #chat::-webkit-scrollbar-thumb{background:#9aa9a3;border-radius:10px;border:2px solid #e6ece9}
+.ai-focus-active #chat::-webkit-scrollbar-thumb:hover{background:#7d8e87}
+.ai-focus-active .chatMsg{scroll-margin-top:16px;scroll-margin-bottom:90px}
+.ai-focus-active .chatMsg.ai:last-child .bubble{box-shadow:0 4px 18px rgba(8,45,35,.07)}
 .ai-focus-active #aiBox{
   position:absolute;
   left:22px;
@@ -336,12 +343,20 @@ function activateAIFocus(){
   if(!grid || !card) return;
   grid.classList.add("ai-focus-active");
   card.classList.add("ai-focus-active");
-  // Give the layout a brief transition before the conversation takes over.
   requestAnimationFrame(()=>{
-    setTimeout(()=>{
+    requestAnimationFrame(()=>{
       const chat=document.getElementById("chat");
       if(chat) chat.scrollTop=chat.scrollHeight;
-    },180);
+    });
+  });
+}
+function scrollChatToLatest(){
+  const chat=document.getElementById("chat");
+  if(!chat) return;
+  requestAnimationFrame(()=>{
+    chat.scrollTop=chat.scrollHeight;
+    const last=chat.querySelector(".chatMsg:last-child");
+    if(last) last.scrollIntoView({behavior:"smooth",block:"end"});
   });
 }
 function addChatMessage(role, html){
@@ -352,7 +367,7 @@ function addChatMessage(role, html){
   row.innerHTML="<div class='bubble'>"+html+"</div>";
   chat.appendChild(row);
   document.getElementById("agentResult").style.display="block";
-  chat.scrollTop=chat.scrollHeight;
+  scrollChatToLatest();
 }
 
 function sourceHTML(p){
@@ -441,7 +456,7 @@ async function askAI(){
     row.className="chatMsg ai";
     row.innerHTML="<div class='bubble'>"+html+"</div>";
     chat.appendChild(row);
-    chat.scrollTop=chat.scrollHeight;
+    scrollChatToLatest();
   }catch(err){
     loading.innerHTML="<div class='bubble'>ByHub AI is temporarily unavailable. The product catalog is still available below.</div>";
   }
