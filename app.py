@@ -323,35 +323,12 @@ def price_intelligence(pid: str):
 
 class AgentRequest(BaseModel):
     query: str
+    context: Optional[dict] = None
 
 @app.post("/api/agent")
 def agent(req: AgentRequest):
-    q=req.query.strip().lower()
-    rows=products()
-    budget_match=re.search(r"(?:under|below|less than)\s*₹?\s*([\d,]+)",q)
-    budget=float(budget_match.group(1).replace(",","")) if budget_match else None
-    tokens=[t for t in re.findall(r"[a-z0-9]+",q) if len(t)>2]
-    def score(p):
-        text=(p["name"]+" "+p["category"]).lower()
-        return sum(3 if t in p["name"].lower() else 1 for t in tokens if t in text)
-    ranked=sorted(rows,key=lambda p:(-score(p),p["name"]))
-    intent="buy_or_wait" if any(x in q for x in ["buy","wait","should i"]) else ("deal" if any(x in q for x in ["deal","discount","cheap","offer"]) else "search")
-    if budget is not None:
-        in_budget=[p for p in ranked if p["best_price"] is not None and p["best_price"]<=budget]
-        if in_budget: ranked=in_budget
-    selected=ranked[:4]
-    cards=[]
-    for p in selected:
-        gap=((p["best_price"]-p["avg"])/p["avg"]*100) if p["best_price"] and p["avg"] else None
-        signal="Near observed low" if p["best_price"] and p["low"] and p["best_price"]<=p["low"]*1.05 else ("Below average" if gap is not None and gap<0 else "Above average")
-        cards.append({"id":p["id"],"name":p["name"],"best_price":p["best_price"],"avg":p["avg"],"low":p["low"],"gap_vs_avg_pct":round(gap,1) if gap is not None else None,"signal":signal,"image":p["image"],"offers":p["offers"]})
-    if intent=="buy_or_wait":
-        message="ByHub is comparing the current price with its stored historical context. Use the product page for the observed price chart and retailer offers."
-    elif intent=="deal":
-        message="ByHub is filtering for products where today's price can be interpreted against MRP and historical context—not just a headline discount."
-    else:
-        message="Here are the closest matches in the current ByHub catalog. Open a product to compare retailers and price history."
-    return {"intent":intent,"query":req.query,"message":message,"products":cards}
+    from services.byhub_agent import run_agent
+    return run_agent(req.query, req.context or {})
 
 @app.get("/api/image-proxy")
 def image_proxy(url: str = Query(..., max_length=2000)):
