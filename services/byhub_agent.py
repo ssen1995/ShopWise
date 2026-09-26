@@ -156,14 +156,23 @@ def _match_score(product, prefs):
 
 def run_agent(query, context=None):
     context = context or {}
+    # Classify the current turn before carrying any previous shopping context.
+    # Greetings/capability questions must never inherit the previous product topic.
     prefs = extract_preferences(query)
-    # Keep the shopping session conversational. Prior user messages let short replies such as "yes", "40k", or "for travel" refine the existing request.
     prior = context.get("messages") or []
-    prior_text = " ".join(
-        str(m.get("content", "")) for m in prior[-8:]
-        if isinstance(m, dict) and m.get("role") == "user"
-    )
-    merged_query = " ".join(x for x in [prior_text, context.get("last_query", ""), query] if x)
+
+    if prefs["intent"] in ("greeting", "capabilities"):
+        merged_query = query
+    else:
+        # Keep the shopping session conversational. Prior user messages let short
+        # replies such as "yes", "40k", or "for travel" refine the existing request.
+        prior_text = " ".join(
+            str(m.get("content", "")) for m in prior[-8:]
+            if isinstance(m, dict) and m.get("role") == "user"
+        )
+        merged_query = " ".join(
+            x for x in [prior_text, context.get("last_query", ""), query] if x
+        )
 
     # Import here so the agent module remains testable without starting FastAPI.
     from app import product_dict, db, SEED
