@@ -1,5 +1,5 @@
 import os, sqlite3, re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -12,56 +12,66 @@ from pydantic import BaseModel
 BASE = Path(__file__).resolve().parent
 DB = BASE / "shopwise.db"
 
-app = FastAPI(title="ByHub API", version="0.2.0")
+app = FastAPI(title="ByHub API", version="0.4.0")
 
 STATIC = BASE / "static"
 TEMPLATES = BASE / "templates"
 STATIC.mkdir(exist_ok=True)
 TEMPLATES.mkdir(exist_ok=True)
-
-if STATIC.exists():
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 SEED = [
     {
-        "id": "sony-wh1000xm6",
-        "name": "Sony WH-1000XM6",
-        "category": "Audio",
+        "id": "sony-wh1000xm6", "name": "Sony WH-1000XM6", "category": "Audio",
         "image": "https://sony.scene7.com/is/image/sonyglobalsolutions/GGB-8071_Olive_Gray_Gallery-1?$originalDimensions$",
         "sources": [
-            {"retailer": "Flipkart", "price": 39990, "url": "https://www.flipkart.com/sony-wh-1000xm6-wireless-noise-cancellation-ai-reduction-bluetooth-wired/p/itmd27e0df955122"},
             {"retailer": "Amazon", "price": 39651, "url": "https://www.amazon.in/s?k=Sony+WH-1000XM6"},
+            {"retailer": "Flipkart", "price": 39990, "url": "https://www.flipkart.com/sony-wh-1000xm6-wireless-noise-cancellation-ai-reduction-bluetooth-wired/p/itmd27e0df955122"}
         ],
-        "mrp": 49990, "avg": 39081, "low": 34989, "tracked_days": 361,
+        "mrp": 49990, "avg": 39139, "low": 34989, "tracked_days": 361,
         "history_url": "https://pricehistory.app/p/sony-wh-1000xm6-best-wireless-noise-canceling-8jeyRtce",
+        "history": [
+            ("2025-12-19", 37989), ("2026-01-16", 37765),
+            ("2026-03-09", 37989), ("2026-07-03", 35990),
+            ("2026-08-07", 37989), ("2026-09-10", 39990)
+        ]
     },
     {
-        "id": "canon-eos-r50",
-        "name": "Canon EOS R50 + RF-S 18-45mm",
-        "category": "Cameras",
+        "id": "canon-eos-r50", "name": "Canon EOS R50 + RF-S 18-45mm", "category": "Cameras",
         "image": "https://heyjimmy.in/wp-content/uploads/2023/03/Canon-EOS-R50-Mirrorless-Camera-with-RF-S18-45mm-F4.5-6.3-IS-STM-Lens-Online-Buy-Mumbai-India.jpg",
         "sources": [{"retailer": "Amazon", "price": 66990, "url": "https://www.amazon.in/s?k=Canon+EOS+R50+18-45mm"}],
         "mrp": 75995, "avg": 65557, "low": 52490, "tracked_days": 1244,
         "history_url": "https://pricehistory.app/p/canon-eos-r50-mirrorless-camera-body-rf-6CeZVo2h",
+        "history": [
+            ("2025-09-22", 57990), ("2025-10-04", 58990),
+            ("2026-03-06", 59991), ("2026-07-08", 64990),
+            ("2026-09-26", 66990)
+        ]
     },
     {
-        "id": "samsung-s25-256",
-        "name": "Samsung Galaxy S25 256GB",
-        "category": "Mobiles",
-        "image": "https://images.samsung.com/is/image/samsung/p6pim/in/sm-s931bzsgins/gallery/in-galaxy-s25-s931-sm-s931bzsgins-thumb-544566006?$344_344_PNG$",
+        "id": "samsung-s25-256", "name": "Samsung Galaxy S25 256GB", "category": "Mobiles",
+        "image": "https://reimg-teknosa-cloud-prod.mncdn.com/mnresize/600/600/productimage/125079836/125079836_0_MC/100328153.png",
         "sources": [{"retailer": "Flipkart", "price": 79999, "url": "https://www.flipkart.com/search?q=Samsung%20Galaxy%20S25%20256GB"}],
         "mrp": 84999, "avg": 73112, "low": 62990, "tracked_days": 394,
         "history_url": "https://www.cheapestinindia.com/price-history/galaxy-s25-5g-icyblue-256-gb--685f1e45206b1ef222944c8c",
+        "history": [
+            ("2026-07-19", 69999), ("2026-07-22", 79999),
+            ("2026-07-31", 65999), ("2026-08-05", 79999),
+            ("2026-08-10", 68999), ("2026-09-17", 79999)
+        ]
     },
     {
-        "id": "airpods-pro-3",
-        "name": "Apple AirPods Pro 3",
-        "category": "Audio",
+        "id": "airpods-pro-3", "name": "Apple AirPods Pro 3", "category": "Audio",
         "image": "https://m.media-amazon.com/images/I/61SUj2aKoEL._SL1500_.jpg",
         "sources": [{"retailer": "Amazon", "price": 25899, "url": "https://www.amazon.in/s?k=AirPods+Pro+3"}],
         "mrp": 25900, "avg": 24707, "low": 17990, "tracked_days": 338,
-        "history_url": "https://pricehistory.app/p/apple-airpods-pro-3",
-    },
+        "history_url": "https://pricehistory.app/p/apple-airpods-pro-3-wireless-earbuds-active-5UXzXASj",
+        "history": [
+            ("2026-01-16", 24490), ("2026-02-06", 17990),
+            ("2026-05-22", 23990), ("2026-06-16", 23990),
+            ("2026-09-10", 25899)
+        ]
+    }
 ]
 
 def db():
@@ -79,11 +89,18 @@ def init_db():
     );
     CREATE TABLE IF NOT EXISTS offers(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id TEXT, retailer TEXT, price REAL, url TEXT, observed_at TEXT
+      product_id TEXT, retailer TEXT, price REAL, url TEXT,
+      observed_at TEXT, UNIQUE(product_id, retailer)
     );
     CREATE TABLE IF NOT EXISTS price_history(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       product_id TEXT, retailer TEXT, price REAL, observed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_history_product_time
+      ON price_history(product_id, observed_at);
+    CREATE TABLE IF NOT EXISTS observation_sources(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, product_id TEXT, retailer TEXT,
+      price REAL, source_type TEXT, source_url TEXT, observed_at TEXT
     );
     """)
     now = datetime.now(timezone.utc).isoformat()
@@ -92,23 +109,39 @@ def init_db():
             """INSERT OR IGNORE INTO products
             (id,name,category,image,mrp,avg,low,tracked_days,history_url,updated_at)
             VALUES (?,?,?,?,?,?,?,?,?,?)""",
-            (p["id"], p["name"], p["category"], p["image"], p["mrp"],
-             p["avg"], p["low"], p["tracked_days"], p["history_url"], now)
+            (p["id"], p["name"], p["category"], p["image"], p["mrp"], p["avg"],
+             p["low"], p["tracked_days"], p["history_url"], now)
         )
         for s in p["sources"]:
-            offer_row = c.execute(
-                "SELECT 1 FROM offers WHERE product_id=? AND retailer=? LIMIT 1",
+            exists = c.execute(
+                "SELECT 1 FROM offers WHERE product_id=? AND retailer=?",
                 (p["id"], s["retailer"])
             ).fetchone()
-            if not offer_row:
+            if not exists:
                 c.execute(
-                    "INSERT INTO offers(product_id,retailer,price,url,observed_at) VALUES (?,?,?,?,?)",
+                    "INSERT INTO offers(product_id,retailer,price,url,observed_at) VALUES(?,?,?,?,?)",
                     (p["id"], s["retailer"], s["price"], s["url"], now)
                 )
+            else:
                 c.execute(
-                    "INSERT INTO price_history(product_id,retailer,price,observed_at) VALUES (?,?,?,?)",
-                    (p["id"], s["retailer"], s["price"], now)
+                    "UPDATE offers SET price=?,url=?,observed_at=? WHERE product_id=? AND retailer=?",
+                    (s["price"], s["url"], now, p["id"], s["retailer"])
                 )
+        existing = c.execute(
+            "SELECT COUNT(*) AS n FROM price_history WHERE product_id=?",
+            (p["id"],)
+        ).fetchone()["n"]
+        if existing < 3:
+            for d, price in p["history"]:
+                ts = d + "T12:00:00+00:00"
+                if not c.execute(
+                    "SELECT 1 FROM price_history WHERE product_id=? AND observed_at=?",
+                    (p["id"], ts)
+                ).fetchone():
+                    c.execute(
+                        "INSERT INTO price_history(product_id,retailer,price,observed_at) VALUES(?,?,?,?)",
+                        (p["id"], "Historical source", price, ts)
+                    )
     c.commit()
     c.close()
 
@@ -116,41 +149,78 @@ init_db()
 
 def product_dict(r):
     c = db()
-    offers = [
-        dict(x) for x in c.execute(
-            "SELECT retailer,price,url,observed_at FROM offers WHERE product_id=? ORDER BY price",
-            (r["id"],)
-        )
-    ]
-    hist = [
-        dict(x) for x in c.execute(
-            "SELECT retailer,price,observed_at FROM price_history WHERE product_id=? ORDER BY observed_at",
-            (r["id"],)
-        )
-    ]
+    offers = [dict(x) for x in c.execute(
+        "SELECT retailer,price,url,observed_at FROM offers WHERE product_id=? ORDER BY price",
+        (r["id"],)
+    )]
+    hist = [dict(x) for x in c.execute(
+        "SELECT retailer,price,observed_at FROM price_history WHERE product_id=? ORDER BY observed_at",
+        (r["id"],)
+    )]
     c.close()
+    return {**dict(r), "offers": offers, "history": hist,
+            "best_price": min((o["price"] for o in offers), default=None),
+            "source": "ByHub observations + published historical reference"}
+
+def intelligence(pid):
+    c = db()
+    p = c.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
+    offers = c.execute(
+        "SELECT retailer,price,url,observed_at FROM offers WHERE product_id=? AND price IS NOT NULL ORDER BY price",
+        (pid,)
+    ).fetchall()
+    hist = c.execute(
+        "SELECT retailer,price,observed_at FROM price_history WHERE product_id=? ORDER BY observed_at",
+        (pid,)
+    ).fetchall()
+    c.close()
+    if not p:
+        return None
+    current = min((float(x["price"]) for x in offers), default=None)
+    points = [{"date": x["observed_at"][:10], "price": float(x["price"])} for x in hist]
+    vals = [x["price"] for x in points]
+    avg = float(p["avg"]) if p["avg"] else (sum(vals)/len(vals) if vals else None)
+    all_low = min([float(p["low"])] + vals) if vals else float(p["low"] or 0)
+    def low_window(days):
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        v = []
+        for x in hist:
+            try:
+                ts = datetime.fromisoformat(x["observed_at"].replace("Z","+00:00"))
+                if ts >= cutoff: v.append(float(x["price"]))
+            except Exception:
+                pass
+        return min(v) if v else None
     return {
-        **dict(r),
-        "offers": offers,
-        "history": hist,
-        "best_price": min((o["price"] for o in offers), default=None),
-        "source": "ByHub database",
+        "product_id": pid, "current_price": current,
+        "average_price": round(avg,2) if avg is not None else None,
+        "reported_low": float(p["low"]) if p["low"] else all_low,
+        "observed_chart_low": min(vals) if vals else None,
+        "low_30d": low_window(30), "low_90d": low_window(90), "low_365d": low_window(365),
+        "mrp": float(p["mrp"]) if p["mrp"] else None,
+        "tracked_days": p["tracked_days"], "observations": len(points),
+        "history_url": p["history_url"], "chart": points,
+        "vs_average_pct": round((current-avg)/avg*100,1) if current and avg else None,
+        "below_mrp_pct": round((1-current/p["mrp"])*100,1) if current and p["mrp"] else None
     }
 
 @app.get("/")
 def home():
-    index = TEMPLATES / "index.html"
-    if index.exists():
-        return FileResponse(index)
-    return {"service": "ByHub API", "docs": "/docs"}
+    return FileResponse(TEMPLATES / "index.html")
+
+@app.get("/product/{pid}")
+def product_page(pid: str):
+    if not db().execute("SELECT 1 FROM products WHERE id=?", (pid,)).fetchone():
+        return Response(status_code=404)
+    return FileResponse(TEMPLATES / "index.html")
 
 @app.get("/api/health")
 def health():
     return {"ok": True, "time": datetime.now(timezone.utc).isoformat(), "database": DB.name}
 
 @app.get("/api/products")
-def products(q: Optional[str] = None, category: Optional[str] = None, limit: int = 20):
-    limit = min(max(limit, 1), 100)
+def products(q: Optional[str] = None, category: Optional[str] = None, limit: int = 24):
+    limit = min(max(limit,1),100)
     c = db()
     sql = "SELECT * FROM products WHERE 1=1"
     args = []
@@ -158,146 +228,117 @@ def products(q: Optional[str] = None, category: Optional[str] = None, limit: int
         sql += " AND (name LIKE ? OR category LIKE ?)"
         args += [f"%{q}%", f"%{q}%"]
     if category:
-        sql += " AND category=?"
-        args.append(category)
-    sql += " ORDER BY name LIMIT ?"
-    args.append(limit)
-    rows = c.execute(sql, args).fetchall()
-    c.close()
+        sql += " AND category=?"; args.append(category)
+    sql += " ORDER BY name LIMIT ?"; args.append(limit)
+    rows = c.execute(sql,args).fetchall(); c.close()
     return [product_dict(r) for r in rows]
 
 @app.get("/api/search")
-def ranked_search(q: Optional[str] = None, category: Optional[str] = None, limit: int = 24):
-    return search_ranked(q, category, limit)
+def search(q: Optional[str] = None, category: Optional[str] = None, limit: int = 24):
+    rows = products(q, category, limit)
+    if q:
+        tokens = [t for t in re.findall(r"[a-z0-9]+", q.lower()) if len(t)>1]
+        def score(p):
+            text=(p["name"]+" "+p["category"]).lower()
+            return sum(3 if t in p["name"].lower() else 1 for t in tokens if t in text)
+        rows=sorted(rows,key=lambda p:(-score(p),p["name"]))
+    return rows
 
 @app.get("/api/categories")
-def get_categories():
-    from services.products import categories
-    return categories()
+def categories():
+    c=db()
+    rows=c.execute("SELECT category,COUNT(*) AS count FROM products GROUP BY category ORDER BY category").fetchall()
+    c.close()
+    return [dict(r) for r in rows]
 
 @app.get("/api/products/{pid}")
 def product(pid: str):
-    c = db()
-    r = c.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
-    c.close()
-    if not r:
-        return Response(status_code=404)
+    c=db(); r=c.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone(); c.close()
+    if not r: return Response(status_code=404)
     return product_dict(r)
-
-@app.get("/api/price-intelligence/{pid}")
-def get_price_intelligence(pid: str):
-    data = price_intelligence(pid)
-    if data is None:
-        return Response(status_code=404)
-    return data
 
 @app.get("/api/price-history/{pid}")
 def price_history(pid: str):
-    c = db()
-    rows = c.execute(
+    c=db()
+    rows=c.execute(
         "SELECT retailer,price,observed_at FROM price_history WHERE product_id=? ORDER BY observed_at",
         (pid,)
     ).fetchall()
     c.close()
     return [dict(r) for r in rows]
 
+@app.get("/api/price-intelligence/{pid}")
+def price_intelligence(pid: str):
+    data=intelligence(pid)
+    return data if data else Response(status_code=404)
+
 class AgentRequest(BaseModel):
     query: str
 
 @app.post("/api/agent")
 def agent(req: AgentRequest):
-    q = req.query.lower()
-    c = db()
-    rows = c.execute("SELECT * FROM products").fetchall()
-    c.close()
-
-    matches = []
-    for r in rows:
-        text = (r["name"] + " " + r["category"]).lower()
-        score = sum(
-            1 for t in re.findall(r"[a-z0-9]+", q)
-            if len(t) > 2 and t in text
-        )
-        if score:
-            matches.append((score, r))
-
-    matches.sort(key=lambda x: x[0], reverse=True)
-    selected = [product_dict(r) for _, r in matches[:4]]
-    if not selected:
-        selected = [product_dict(r) for r in rows[:4]]
-
-    budget = re.search(r"(?:under|below|less than)\s*₹?\s*([\d,]+)", q)
-    if budget:
-        b = float(budget.group(1).replace(",", ""))
-        filtered = [p for p in selected if (p["best_price"] or 1e18) <= b]
-        if filtered:
-            selected = filtered
-
-    intent = (
-        "buy_or_wait" if any(x in q for x in ["buy", "wait", "price history", "should i"])
-        else "deal" if any(x in q for x in ["deal", "discount", "cheap", "offer"])
-        else "search"
-    )
-
-    out = []
+    q=req.query.strip().lower()
+    rows=products()
+    budget_match=re.search(r"(?:under|below|less than)\s*₹?\s*([\d,]+)",q)
+    budget=float(budget_match.group(1).replace(",","")) if budget_match else None
+    tokens=[t for t in re.findall(r"[a-z0-9]+",q) if len(t)>2]
+    def score(p):
+        text=(p["name"]+" "+p["category"]).lower()
+        return sum(3 if t in p["name"].lower() else 1 for t in tokens if t in text)
+    ranked=sorted(rows,key=lambda p:(-score(p),p["name"]))
+    intent="buy_or_wait" if any(x in q for x in ["buy","wait","should i"]) else ("deal" if any(x in q for x in ["deal","discount","cheap","offer"]) else "search")
+    if budget is not None:
+        in_budget=[p for p in ranked if p["best_price"] is not None and p["best_price"]<=budget]
+        if in_budget: ranked=in_budget
+    selected=ranked[:4]
+    cards=[]
     for p in selected:
-        cur = p["best_price"]
-        gap = ((cur - p["avg"]) / p["avg"] * 100) if cur and p["avg"] else 0
-        out.append({
-            "id": p["id"], "name": p["name"], "best_price": cur,
-            "avg": p["avg"], "low": p["low"],
-            "gap_vs_avg_pct": round(gap, 1),
-            "offers": p["offers"], "image": p["image"],
-        })
-
-    return {
-        "intent": intent,
-        "query": req.query,
-        "message": "Comparison generated from the ByHub product database. Historical figures are published records currently seeded into this MVP; retailer APIs can replace these seeds after credentials are added.",
-        "products": out,
-    }
+        gap=((p["best_price"]-p["avg"])/p["avg"]*100) if p["best_price"] and p["avg"] else None
+        signal="Near observed low" if p["best_price"] and p["low"] and p["best_price"]<=p["low"]*1.05 else ("Below average" if gap is not None and gap<0 else "Above average")
+        cards.append({"id":p["id"],"name":p["name"],"best_price":p["best_price"],"avg":p["avg"],"low":p["low"],"gap_vs_avg_pct":round(gap,1) if gap is not None else None,"signal":signal,"image":p["image"],"offers":p["offers"]})
+    if intent=="buy_or_wait":
+        message="ByHub is comparing the current price with its stored historical context. Use the product page for the observed price chart and retailer offers."
+    elif intent=="deal":
+        message="ByHub is filtering for products where today's price can be interpreted against MRP and historical context—not just a headline discount."
+    else:
+        message="Here are the closest matches in the current ByHub catalog. Open a product to compare retailers and price history."
+    return {"intent":intent,"query":req.query,"message":message,"products":cards}
 
 @app.get("/api/image-proxy")
 def image_proxy(url: str = Query(..., max_length=2000)):
-    r = requests.get(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; ByHub/0.2)"},
-        timeout=15,
-    )
-    if r.status_code >= 400:
-        return Response(status_code=r.status_code)
-    ct = r.headers.get("content-type", "image/jpeg")
-    if not ct.startswith("image/"):
-        ct = "image/jpeg"
-    return Response(
-        content=r.content,
-        media_type=ct,
-        headers={"Cache-Control": "public, max-age=86400"},
-    )
+    try:
+        r=requests.get(url,headers={"User-Agent":"Mozilla/5.0 (compatible; ByHub/0.4)"},timeout=15)
+        if r.status_code>=400: return Response(status_code=r.status_code)
+        ct=r.headers.get("content-type","image/jpeg")
+        if not ct.startswith("image/"): ct="image/jpeg"
+        return Response(content=r.content,media_type=ct,headers={"Cache-Control":"public,max-age=86400"})
+    except requests.RequestException:
+        return Response(status_code=502)
 
 class DiscoveryObservationRequest(BaseModel):
     product_id: str
     retailer: str
     price: float
     url: str
-    source_url: Optional[str] = None
-    source_type: str = "manual_web_research"
-    currency: str = "INR"
-    available: bool = True
+    source_url: Optional[str]=None
+    source_type: str="manual_web_research"
 
 @app.post("/api/discovery/observation")
 def discovery_observation(req: DiscoveryObservationRequest):
-    return record_discovery_observation(DiscoveryObservation(
-        product_id=req.product_id, retailer=req.retailer, price=req.price,
-        url=req.url, source_url=req.source_url, source_type=req.source_type,
-        currency=req.currency, available=req.available
-    ))
+    now=datetime.now(timezone.utc).isoformat()
+    c=db()
+    if not c.execute("SELECT 1 FROM products WHERE id=?", (req.product_id,)).fetchone():
+        c.close(); return Response(status_code=404)
+    c.execute("""INSERT INTO offers(product_id,retailer,price,url,observed_at) VALUES(?,?,?,?,?)
+                 ON CONFLICT(product_id,retailer) DO UPDATE SET price=excluded.price,url=excluded.url,observed_at=excluded.observed_at""",
+              (req.product_id,req.retailer,req.price,req.url,now))
+    c.execute("INSERT INTO price_history(product_id,retailer,price,observed_at) VALUES(?,?,?,?)",
+              (req.product_id,req.retailer,req.price,now))
+    c.execute("INSERT INTO observation_sources(product_id,retailer,price,source_type,source_url,observed_at) VALUES(?,?,?,?,?,?)",
+              (req.product_id,req.retailer,req.price,req.source_type,req.source_url,now))
+    c.commit(); c.close()
+    return {"ok":True,"observed_at":now}
 
 @app.post("/api/sync")
 def sync():
-    return {
-        "ok": True,
-        "message": "Seed data is available. Add approved retailer credentials to enable live ingestion.",
-        "amazon_enabled": bool(os.getenv("AMAZON_CLIENT_ID")),
-        "flipkart_enabled": bool(os.getenv("FLIPKART_API_KEY")),
-    }
+    return {"ok":True,"message":"ByHub is ready for approved retailer API/feed credentials.","amazon_enabled":bool(os.getenv("AMAZON_CLIENT_ID")),"flipkart_enabled":bool(os.getenv("FLIPKART_API_KEY"))}
