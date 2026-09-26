@@ -29,7 +29,11 @@ def extract_preferences(text):
             budget_max = _num(m.group(1))
 
     intent = "product_search"
-    if any(x in q for x in ("should i buy", "buy or wait", "wait", "good time to buy", "price right now")):
+    if re.fullmatch(r"(hi|hello|hey|hiya|good morning|good afternoon|good evening|thanks|thank you|thx)[!. ]*", q):
+        intent = "greeting"
+    elif any(x in q for x in ("who are you", "what can you do", "how can you help", "what do you do")):
+        intent = "capabilities"
+    elif any(x in q for x in ("should i buy", "buy or wait", "wait", "good time to buy", "price right now")):
         intent = "buy_or_wait"
     elif any(x in q for x in ("price history", "historical price", "price trend", "getting cheaper", "getting expensive", "when was it cheapest")):
         intent = "price_analysis"
@@ -187,7 +191,11 @@ def run_agent(query, context=None):
 
     analyses = {p["id"]: price_analysis(p) for p in selected}
 
-    if not selected:
+    if prefs["intent"] == "greeting":
+        message = "Hi! I'm ByHub AI. I can help you find products, compare retailers, understand price history, and decide whether a current price is worth considering. What are you shopping for?"
+    elif prefs["intent"] == "capabilities":
+        message = "I can help you find a product, narrow choices by budget and priorities, compare options, check retailer prices, analyze price history, and explore whether buying now or waiting makes sense."
+    elif not selected:
         message = "I couldn't find a matching product in the current ByHub catalog. Tell me the product type, budget, or a product name and I'll narrow it down."
     elif prefs["intent"] == "buy_or_wait":
         p = selected[0]
@@ -212,6 +220,8 @@ def run_agent(query, context=None):
         message = "I can narrow this down by budget, intended use and priorities. If your budget is flexible, I can also show a cheaper option and a stretch option."
 
     cards = []
+    if prefs["intent"] in ("greeting", "capabilities"):
+        selected = []
     for p in selected:
         a = analyses[p["id"]]
         cards.append({
@@ -240,7 +250,7 @@ def run_agent(query, context=None):
             "history_source_note": "Historical context comes from the published price-history reference linked below."
         })
 
-    follow_up = _follow_up(prefs, selected)
+    follow_up = None if prefs["intent"] in ("greeting", "capabilities") else _follow_up(prefs, selected)
 
     return {
         "version": "1.0",
