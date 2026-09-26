@@ -96,11 +96,11 @@ def init_db():
              p["avg"], p["low"], p["tracked_days"], p["history_url"], now)
         )
         for s in p["sources"]:
-            c.execute(
+            offer_row = c.execute(
                 "SELECT 1 FROM offers WHERE product_id=? AND retailer=? LIMIT 1",
                 (p["id"], s["retailer"])
-            )
-            if not c.fetchone():
+            ).fetchone()
+            if not offer_row:
                 c.execute(
                     "INSERT INTO offers(product_id,retailer,price,url,observed_at) VALUES (?,?,?,?,?)",
                     (p["id"], s["retailer"], s["price"], s["url"], now)
