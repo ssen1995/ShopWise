@@ -153,7 +153,13 @@ def _match_score(product, prefs):
 def run_agent(query, context=None):
     context = context or {}
     prefs = extract_preferences(query)
-    merged_query = " ".join(x for x in [context.get("last_query", ""), query] if x)
+    # Keep the shopping session conversational. Prior user messages let short replies such as "yes", "40k", or "for travel" refine the existing request.
+    prior = context.get("messages") or []
+    prior_text = " ".join(
+        str(m.get("content", "")) for m in prior[-8:]
+        if isinstance(m, dict) and m.get("role") == "user"
+    )
+    merged_query = " ".join(x for x in [prior_text, context.get("last_query", ""), query] if x)
 
     # Import here so the agent module remains testable without starting FastAPI.
     from app import product_dict, db, SEED
@@ -193,7 +199,7 @@ def run_agent(query, context=None):
             "above_average": "above its stored average",
             "insufficient_data": "not supported by enough price observations",
         }.get(a["position"], "not yet clear")
-        message = f"{p['name']} is currently {position}. I can also compare its recent trend and retailer prices before you decide."
+        message = f"{p['name']} is currently {position}. I can compare the listed retailer prices and the historical price reference before you decide."
     elif prefs["intent"] == "price_analysis":
         p = selected[0]
         a = analyses[p["id"]]
@@ -224,6 +230,14 @@ def run_agent(query, context=None):
             "price_position": a["position"],
             "observations": a["observations"],
             "reason": _reason(p, prefs, a),
+            "price_sources": [
+                {"retailer": o.get("retailer"), "price": o.get("price"),
+                 "url": o.get("url"), "observed_at": o.get("observed_at")}
+                for o in p.get("offers", []) if o.get("price") is not None
+            ],
+            "history_source": p.get("history_url"),
+            "price_source_note": "Current price is the lowest price observed by ByHub from the listed retailer sources.",
+            "history_source_note": "Historical context comes from the published price-history reference linked below."
         })
 
     follow_up = _follow_up(prefs, selected)
@@ -235,7 +249,10 @@ def run_agent(query, context=None):
         "message": message,
         "follow_up": follow_up,
         "products": cards,
-        "context": {"last_query": query},
+        "context": {
+            "last_query": query,
+            "messages": prior[-8:] if isinstance(prior, list) else [],
+        },
     }
 
 def _reason(p, prefs, a):
