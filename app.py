@@ -166,6 +166,11 @@ def products(q: Optional[str] = None, category: Optional[str] = None, limit: int
     c.close()
     return [product_dict(r) for r in rows]
 
+@app.get("/api/categories")
+def get_categories():
+    from services.products import categories
+    return categories()
+
 @app.get("/api/products/{pid}")
 def product(pid: str):
     c = db()
@@ -231,7 +236,7 @@ def agent(req: AgentRequest):
             "id": p["id"], "name": p["name"], "best_price": cur,
             "avg": p["avg"], "low": p["low"],
             "gap_vs_avg_pct": round(gap, 1),
-            "offers": p["offers"], "image": p["image"],
+            "offers": p["offers"], "image": p["image_url"],
         })
 
     return {
