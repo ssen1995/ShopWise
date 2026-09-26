@@ -473,7 +473,7 @@ async function askAI(){
     let html=escapeHTML(data.message||"Here's what I found.");
     if(data.follow_up) html+="<p style='margin:9px 0 0'>"+escapeHTML(data.follow_up)+"</p>";
     if(data.products&&data.products.length){
-      data.products.slice(0,4).forEach(p=>{ html+=productHTML(p); });
+      data.products.slice(0,8).forEach(p=>{ html+=productHTML(p); });
     }
     if(data.products&&data.products.length){
       html+="<div class='chatActions'>"+
