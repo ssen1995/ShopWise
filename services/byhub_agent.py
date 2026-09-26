@@ -195,7 +195,7 @@ def run_agent(query, context=None):
         "smartphone": ("Mobiles", "What's your budget for the phone, and what matters most: camera, performance, battery, or display?"),
     }
     q_simple = (query or "").strip().lower()
-    broad_match = next((v for k, v in broad_terms.items() if re.search(r"\\b" + re.escape(k) + r"\\b", q_simple)), None)
+    broad_match = next((v for k, v in broad_terms.items() if re.search(r"\b" + re.escape(k) + r"\b", q_simple)), None)
 
     if broad_match and prefs["intent"] == "product_search" and prefs["budget_max"] is None and not prefs["priorities"]:
         category, question = broad_match
@@ -269,8 +269,29 @@ def run_agent(query, context=None):
             "context": {"last_query": query, "messages": prior[-8:] if isinstance(prior, list) else []},
         }
 
-    # If no live retailer connection is configured, only use local records when
-    # they actually match the request. Never dump unrelated seed products.
+    # If no live retailer result exists, never present unrelated demo products.
+    # This is especially important for broad categories such as "smartphones".
+    if not live_products:
+        scored = [(p, _match_score(p, prefs)) for p in products]
+        relevant = [p for p, score in scored if score > 0]
+        if not relevant:
+            return {
+                "version": "2.1",
+                "intent": prefs["intent"],
+                "preferences": prefs,
+                "message": "I understand you're looking for smartphones, but I don't have a genuine smartphone retailer result available yet. I won't show unrelated products just to fill the chat.",
+                "follow_up": "Once live retailer search is connected, I can search current smartphone listings and narrow them by your budget and priorities.",
+                "products": [],
+                "search": {
+                    "mode": "no_live_match",
+                    "retailers": live_search["enabled_retailers"],
+                    "errors": live_search["errors"],
+                },
+                "context": {"last_query": query, "messages": prior[-8:] if isinstance(prior, list) else []},
+            }
+
+    # If there are relevant local records, they may be used as ByHub intelligence
+    # fallback; unrelated seed products are never shown.
     scored = [(p, _match_score(p, prefs)) for p in products]
     ranked = [p for p, score in sorted(scored, key=lambda x: (-x[1], x[0]["name"])) if score > 0]
 
