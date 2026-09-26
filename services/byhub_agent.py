@@ -280,7 +280,7 @@ def run_agent(query, context=None):
 
     # If no live retailer result exists, never present unrelated demo products.
     # This is especially important for broad categories such as "smartphones".
-    if not live_products:
+    if not live_products and prefs["intent"] not in ("greeting", "capabilities"):
         scored = [(p, _match_score(p, prefs)) for p in products]
         relevant = [p for p, score in scored if score > 0]
         if not relevant:
