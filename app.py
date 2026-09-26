@@ -210,7 +210,10 @@ def home():
 
 @app.get("/product/{pid}")
 def product_page(pid: str):
-    if not db().execute("SELECT 1 FROM products WHERE id=?", (pid,)).fetchone():
+    c = db()
+    exists = c.execute("SELECT 1 FROM products WHERE id=?", (pid,)).fetchone()
+    c.close()
+    if not exists:
         return Response(status_code=404)
     return FileResponse(TEMPLATES / "index.html")
 
