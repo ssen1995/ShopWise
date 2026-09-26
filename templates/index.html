@@ -41,7 +41,20 @@ h1 em{font-style:normal;color:var(--green)}
 .agent input{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;outline:0;margin:7px 0 10px}
 .chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
 .chips button{border:0;background:#e8f3ef;color:var(--green);padding:8px 11px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer}
-.agentResult{margin-top:15px;padding:14px;background:#f4f8f6;border-radius:14px;font-size:13px;color:#53635d;display:none}
+.agentResult{margin-top:15px;background:#f4f8f6;border-radius:14px;font-size:13px;color:#53635d;display:none;overflow:hidden}
+.chat{max-height:520px;overflow:auto;padding:12px}
+.chatMsg{display:flex;margin:8px 0}
+.chatMsg.user{justify-content:flex-end}
+.bubble{max-width:88%;padding:11px 13px;border-radius:14px;line-height:1.45}
+.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px}
+.ai .bubble{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.chatSources{margin-top:10px;padding-top:9px;border-top:1px solid #edf1ef;font-size:11px}
+.sourceLine{display:flex;justify-content:space-between;gap:8px;padding:4px 0}
+.sourceLine a{color:var(--green);font-weight:800}
+.historyLink{display:inline-block;margin-top:7px;color:var(--green);font-weight:800}
+.chatActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chatActions button{border:1px solid var(--line);background:#fff;color:var(--green);padding:7px 9px;border-radius:18px;font-size:10px;font-weight:800;cursor:pointer}
+.agentNote{font-size:10px;color:#7b8983;margin-top:8px}
 .section{padding:65px 0}
 .sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:25px}
 .sectionHead h2{font-size:30px;letter-spacing:-1px;margin:0 0 5px}
@@ -119,8 +132,13 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 <button type="button" onclick="fillAI('Find me good deals')">Find deals</button>
 <button type="button" onclick="fillAI('Should I buy Sony WH-1000XM6?')">Buy or wait?</button>
 </div>
-<button class="btn" type="button" onclick="askAI()">Ask ByHub AI →</button>
-<div id="agentResult" class="agentResult"></div>
+<div style="display:flex;gap:8px;align-items:center">
+  <button class="btn" type="button" onclick="askAI()">Ask ByHub AI →</button>
+  <button type="button" onclick="clearAI()" style="border:0;background:transparent;color:#66766f;font-size:11px;font-weight:800;cursor:pointer">Clear chat</button>
+</div>
+<div id="agentResult" class="agentResult">
+  <div id="chat" class="chat"></div>
+</div>
 </div>
 </div>
 </header>
@@ -203,42 +221,120 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 </footer>
 
 <script>
-function fillAI(text){document.getElementById("aiBox").value=text}
+let chatHistory = [];
+
+function fillAI(text){
+  document.getElementById("aiBox").value=text;
+  document.getElementById("aiBox").focus();
+}
+
+function addChatMessage(role, html){
+  const chat=document.getElementById("chat");
+  const row=document.createElement("div");
+  row.className="chatMsg "+role;
+  row.innerHTML="<div class='bubble'>"+html+"</div>";
+  chat.appendChild(row);
+  document.getElementById("agentResult").style.display="block";
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function sourceHTML(p){
+  const sources=p.price_sources||[];
+  let html="<div class='chatSources'><strong>Price source</strong>";
+  if(!sources.length){
+    html+="<div class='agentNote'>No current retailer source is available for this product.</div>";
+  }else{
+    sources.forEach(o=>{
+      const price=o.price!=null?"₹"+Number(o.price).toLocaleString("en-IN"):"";
+      const date=o.observed_at?new Date(o.observed_at).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}):"";
+      html+="<div class='sourceLine'><span>"+escapeHTML(o.retailer||"Retailer")+" · "+price+"</span>"+
+        (o.url?"<a href='"+escapeHTML(o.url)+"' target='_blank' rel='noopener'>View source ↗</a>":"")+
+        "</div>";
+      if(date) html+="<div class='agentNote'>Observed "+escapeHTML(date)+"</div>";
+    });
+  }
+  if(p.history_source){
+    html+="<a class='historyLink' href='"+escapeHTML(p.history_source)+"' target='_blank' rel='noopener'>View historical price source ↗</a>";
+  }
+  html+="<div class='agentNote'>"+escapeHTML(p.price_source_note||"Price data is based on ByHub observations.")+"</div></div>";
+  return html;
+}
+
+function productHTML(p){
+  const price=p.best_price!=null?"₹"+Number(p.best_price).toLocaleString("en-IN"):"Price unavailable";
+  const avg=p.average_price!=null?" · avg ₹"+Number(p.average_price).toLocaleString("en-IN"):"";
+  const trend=p.trend&&p.trend!=="unknown"?" · "+p.trend:"";
+  return "<div style='margin-top:10px;background:#f7faf8;border:1px solid #dfe6e2;border-radius:11px;padding:10px'>"+
+    "<b>"+escapeHTML(p.name)+"</b><div style='margin-top:4px;font-weight:900'>"+price+"</div>"+
+    "<div style='font-size:11px;color:#66766f;margin-top:3px'>"+escapeHTML((p.reason||"")+avg+trend)+"</div>"+
+    sourceHTML(p)+"</div>";
+}
+
+function quickReply(text){
+  document.getElementById("aiBox").value=text;
+  askAI();
+}
 
 async function askAI(){
   const input=document.getElementById("aiBox");
-  const box=document.getElementById("agentResult");
   const q=input.value.trim();
-  if(!q){box.style.display="block";box.textContent="Tell me what you're looking for first.";return}
-  box.style.display="block";
-  box.innerHTML="<strong>ByHub AI is thinking…</strong>";
+  if(!q)return;
+  addChatMessage("user",escapeHTML(q));
+  input.value="";
+  const chat=document.getElementById("chat");
+  const loading=document.createElement("div");
+  loading.className="chatMsg ai";
+  loading.innerHTML="<div class='bubble'><strong>ByHub AI is thinking…</strong></div>";
+  chat.appendChild(loading);
+  chat.scrollTop=chat.scrollHeight;
+
   try{
     const response=await fetch("/api/agent",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({query:q})
+      body:JSON.stringify({
+        query:q,
+        context:{
+          messages:chatHistory,
+          last_query:chatHistory.length?chatHistory[chatHistory.length-1].content:""
+        }
+      })
     });
     if(!response.ok) throw new Error("agent");
     const data=await response.json();
-    let html="<strong>"+escapeHTML(data.message||"Here's what I found.")+"</strong>";
+    loading.remove();
+
+    chatHistory.push({role:"user",content:q});
+    chatHistory.push({role:"assistant",content:data.message||""});
+
+    let html=escapeHTML(data.message||"Here's what I found.");
     if(data.follow_up) html+="<p style='margin:9px 0 0'>"+escapeHTML(data.follow_up)+"</p>";
     if(data.products&&data.products.length){
-      html+="<div style='margin-top:13px;display:grid;gap:8px'>";
-      data.products.slice(0,4).forEach(p=>{
-        const price=p.best_price!=null?"₹"+Number(p.best_price).toLocaleString("en-IN"):"Price unavailable";
-        const avg=p.average_price!=null?" · avg ₹"+Number(p.average_price).toLocaleString("en-IN"):"";
-        const trend=p.trend&&p.trend!=="unknown"?" · "+p.trend:"";
-        html+="<div style='background:#fff;border:1px solid #dfe6e2;border-radius:11px;padding:10px'>"+
-          "<b>"+escapeHTML(p.name)+"</b><div style='margin-top:4px;font-weight:900'>"+price+"</div>"+
-          "<div style='font-size:11px;color:#66766f;margin-top:3px'>"+escapeHTML((p.reason||"")+avg+trend)+"</div></div>";
-      });
-      html+="</div>";
+      data.products.slice(0,4).forEach(p=>{ html+=productHTML(p); });
     }
-    box.innerHTML=html;
+    if(data.products&&data.products.length){
+      html+="<div class='chatActions'>"+
+        "<button onclick='quickReply("Show me cheaper options")'>Show cheaper</button>"+
+        "<button onclick='quickReply("Show me the price history")'>Price history</button>"+
+        "<button onclick='quickReply("Compare these options")'>Compare</button>"+
+      "</div>";
+    }
+    const row=document.createElement("div");
+    row.className="chatMsg ai";
+    row.innerHTML="<div class='bubble'>"+html+"</div>";
+    chat.appendChild(row);
+    chat.scrollTop=chat.scrollHeight;
   }catch(err){
-    box.textContent="ByHub AI is temporarily unavailable. The product catalog is still available below.";
+    loading.innerHTML="<div class='bubble'>ByHub AI is temporarily unavailable. The product catalog is still available below.</div>";
   }
 }
+
+function clearAI(){
+  chatHistory=[];
+  document.getElementById("chat").innerHTML="";
+  document.getElementById("agentResult").style.display="none";
+}
+
 function escapeHTML(value){
   return String(value??"").replace(/[&<>"']/g,function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
