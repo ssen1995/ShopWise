@@ -6,7 +6,7 @@ from statistics import mean
 # This layer deliberately keeps product/price facts separate from conversation logic.
 # An LLM can later sit on top of this structured result without changing the price engine.
 
-BUDGET_RE = re.compile(r"(?:under|below|less than|max(?:imum)?|up to)\s*(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)", re.I)
+BUDGET_RE = re.compile(r"(?:under|below|less than|max(?:imum)?|up to)\s*(?:₹|rs\.?\s*)?([\d,]+(?:\.\d+)?)(?:\s*(k|thousand|lakh|l))?", re.I)
 RANGE_RE = re.compile(r"(?:₹|rs\.?\s*)?([\d,]+)\s*(?:-|to)\s*(?:₹|rs\.?\s*)?([\d,]+)", re.I)
 
 def _num(v):
@@ -27,6 +27,11 @@ def extract_preferences(text):
         m = BUDGET_RE.search(q)
         if m:
             budget_max = _num(m.group(1))
+            unit = (m.group(2) or "").lower()
+            if unit in ("k", "thousand"):
+                budget_max *= 1000
+            elif unit in ("lakh", "l"):
+                budget_max *= 100000
 
     intent = "product_search"
     if re.fullmatch(r"(hi|hello|hey|hiya|good morning|good afternoon|good evening|thanks|thank you|thx)[!. ]*", q):
@@ -260,8 +265,8 @@ def run_agent(query, context=None):
                     "observed_at": datetime.now(timezone.utc).isoformat(),
                 }],
                 "history_source": None,
-                "price_source_note": "Current product and price returned by the retailer's approved API.",
-                "history_source_note": "ByHub does not yet have enough first-party observations to claim historical pricing for this result.",
+                "price_source_note": "Price shown when present is a search-result observation from the source page; verify the current checkout price before buying.",
+                "history_source_note": "ByHub does not claim historical pricing for web-discovered results unless it has its own observations.",
             })
         return {
             "version": "2.0",
@@ -271,7 +276,7 @@ def run_agent(query, context=None):
             "follow_up": "Want me to narrow these by a specific feature, brand, or tighter budget?",
             "products": cards,
             "search": {
-                "mode": "live_retailer_search",
+                "mode": live_search.get("mode", "web_search"),
                 "retailers": live_search["enabled_retailers"],
                 "errors": live_search["errors"],
             },
@@ -288,8 +293,8 @@ def run_agent(query, context=None):
                 "version": "2.1",
                 "intent": prefs["intent"],
                 "preferences": prefs,
-                "message": "I understand you're looking for smartphones, but I don't have a genuine smartphone retailer result available yet. I won't show unrelated products just to fill the chat.",
-                "follow_up": "Once live retailer search is connected, I can search current smartphone listings and narrow them by your budget and priorities.",
+                "message": f"I understand you're looking for {q_simple or 'a product'}, but I don't have a genuine matching web result available yet. I won't show unrelated products just to fill the chat.",
+                "follow_up": "I can try another search phrasing or you can give me a brand, model, budget, or key feature.",
                 "products": [],
                 "search": {
                     "mode": "no_live_match",
