@@ -43,6 +43,30 @@ def search_products(query=None, category=None, limit=24):
     conn.close()
     return result
 
+def search_ranked(query=None, category=None, limit=24):
+    """Rank existing catalog products by textual relevance."""
+    import re
+    conn = connect()
+    rows = conn.execute("SELECT * FROM products").fetchall()
+    conn.close()
+    tokens = [t.lower() for t in re.findall(r"[a-z0-9]+", query or "") if len(t) > 1]
+    ranked = []
+    for row in rows:
+        if category and (row["category"] or "").lower() != category.lower():
+            continue
+        fields = [(row["name"] or ""), (row["brand"] or ""), (row["category"] or "")]
+        hay = " ".join(fields).lower()
+        score = sum(3 if t in (row["name"] or "").lower() else 1 for t in tokens if t in hay)
+        if not query:
+            score = 1
+        if score:
+            ranked.append((score, row))
+    ranked.sort(key=lambda x: (-x[0], x[1]["name"]))
+    conn = connect()
+    result = [serialize(conn, row) for _, row in ranked[:max(1, min(limit, 100))]]
+    conn.close()
+    return result
+
 def get_product(product_id):
     conn = connect()
     row = conn.execute("SELECT * FROM products WHERE id=?", (product_id,)).fetchone()
