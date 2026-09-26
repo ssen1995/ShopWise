@@ -209,7 +209,68 @@ def run_agent(query, context=None):
             "context": {"last_query": query, "messages": prior[-8:] if isinstance(prior, list) else []},
         }
 
-    ranked = sorted(products, key=lambda p: (-_match_score(p, prefs), p["name"]))
+    # Search live retailer catalogs first. Seeded/local products are historical
+    # intelligence records, not a substitute for genuine product discovery.
+    from services.discovery import search_retailers
+    live_search = search_retailers(
+        merged_query,
+        limit_per_retailer=10,
+        max_price=prefs.get("budget_max"),
+    )
+    live_products = live_search["products"]
+
+    if live_products:
+        cards = []
+        for p in live_products[:12]:
+            cards.append({
+                "id": p.get("id"),
+                "name": p.get("name"),
+                "category": None,
+                "image": p.get("image"),
+                "best_price": p.get("best_price"),
+                "mrp": None,
+                "offers": [{
+                    "retailer": p.get("retailer"),
+                    "price": p.get("best_price"),
+                    "url": p.get("url"),
+                }],
+                "average_price": None,
+                "published_low": None,
+                "vs_average_pct": None,
+                "trend": "unknown",
+                "volatility": "unknown",
+                "price_position": "live_price_only",
+                "observations": 0,
+                "reason": "live retailer search result matching your request",
+                "price_sources": [{
+                    "retailer": p.get("retailer"),
+                    "price": p.get("best_price"),
+                    "url": p.get("url"),
+                    "observed_at": datetime.now(timezone.utc).isoformat(),
+                }],
+                "history_source": None,
+                "price_source_note": "Current product and price returned by the retailer's approved API.",
+                "history_source_note": "ByHub does not yet have enough first-party observations to claim historical pricing for this result.",
+            })
+        return {
+            "version": "2.0",
+            "intent": prefs["intent"],
+            "preferences": prefs,
+            "message": f"I found {len(live_products)} current retailer results matching your request.",
+            "follow_up": "Want me to narrow these by a specific feature, brand, or tighter budget?",
+            "products": cards,
+            "search": {
+                "mode": "live_retailer_search",
+                "retailers": live_search["enabled_retailers"],
+                "errors": live_search["errors"],
+            },
+            "context": {"last_query": query, "messages": prior[-8:] if isinstance(prior, list) else []},
+        }
+
+    # If no live retailer connection is configured, only use local records when
+    # they actually match the request. Never dump unrelated seed products.
+    scored = [(p, _match_score(p, prefs)) for p in products]
+    ranked = [p for p, score in sorted(scored, key=lambda x: (-x[1], x[0]["name"])) if score > 0]
 
     if prefs["budget_max"] is not None:
         in_budget = [p for p in ranked if p.get("best_price") is not None and p["best_price"] <= prefs["budget_max"]]
@@ -225,7 +286,7 @@ def run_agent(query, context=None):
     elif prefs["intent"] == "capabilities":
         message = "I can help you find a product, narrow choices by budget and priorities, compare options, check retailer prices, analyze price history, and explore whether buying now or waiting makes sense."
     elif not selected:
-        message = "I couldn't find a matching product in the current ByHub catalog. Tell me the product type, budget, or a product name and I'll narrow it down."
+        message = "I don't have a genuine matching retailer result yet. I won't substitute unrelated demo products. Once a retailer API is connected, this search will query its live catalog."
     elif prefs["intent"] == "buy_or_wait":
         p = selected[0]
         a = analyses[p["id"]]
