@@ -93,8 +93,23 @@ function productCard(p){
    '<div class="cardFoot"><a class="shop" href="'+esc(offers[0]?.url||'#')+'" target="_blank" rel="noopener">View retailer price →</a><button class="detailBtn" onclick="openProduct(\''+esc(p.id)+'\')">See price history & details</button></div></div></article>'
 }
 async function loadHome(){
- const [ps,cs]=await Promise.all([fetch('/api/products?limit=24').then(r=>r.json()),fetch('/api/categories').then(r=>r.json())]);
- renderCats(cs); renderProducts(ps);
+ try{
+  const [pr,cr]=await Promise.all([
+    fetch('/api/products?limit=24'),
+    fetch('/api/categories')
+  ]);
+  const ps=pr.ok?await pr.json():[];
+  const cs=cr.ok?await cr.json():[];
+  renderCats(cs); renderProducts(ps);
+  if(!pr.ok && !cr.ok){
+    document.getElementById('productsGrid').innerHTML='<div class="empty">ByHub is loading its catalog. Please refresh in a moment.</div>';
+  }
+ }catch(e){
+  document.getElementById('cats').innerHTML='<div class="empty">Catalog temporarily unavailable.</div>';
+  document.getElementById('productsGrid').innerHTML='<div class="empty">Catalog temporarily unavailable. Please refresh in a moment.</div>';
+  document.getElementById('dealsGrid').innerHTML='<div class="deal">Catalog data is temporarily unavailable.</div>';
+  document.getElementById('intelGrid').innerHTML='<div class="empty">Price intelligence will appear when the catalog is available.</div>';
+ }
 }
 function renderCats(cs){
  document.getElementById('cats').innerHTML=(cs||[]).map(x=>'<div class="cat" onclick="searchCat('+JSON.stringify(x.category)+')"><div class="catIcon">'+iconFor(x.category)+'</div><b>'+esc(x.category)+'</b><small>'+x.count+' product'+(x.count===1?'':'s')+'</small></div>').join('')||'<div class="empty">Categories will appear as products are added.</div>';
