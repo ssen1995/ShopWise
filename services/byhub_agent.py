@@ -257,7 +257,7 @@ def run_agent(query, context=None):
                 "volatility": "unknown",
                 "price_position": "live_price_only",
                 "observations": 0,
-                "reason": "live retailer search result matching your request",
+                "reason": "web-discovered result matching your request",
                 "price_sources": [{
                     "retailer": p.get("retailer"),
                     "price": p.get("best_price"),
@@ -272,7 +272,7 @@ def run_agent(query, context=None):
             "version": "2.0",
             "intent": prefs["intent"],
             "preferences": prefs,
-            "message": f"I found {len(live_products)} current retailer results matching your request.",
+            "message": f"I found {len(live_products)} current web results matching your request.",
             "follow_up": "Want me to narrow these by a specific feature, brand, or tighter budget?",
             "products": cards,
             "search": {
@@ -297,7 +297,7 @@ def run_agent(query, context=None):
                 "follow_up": "I can try another search phrasing or you can give me a brand, model, budget, or key feature.",
                 "products": [],
                 "search": {
-                    "mode": "no_live_match",
+                    "mode": live_search.get("mode", "no_live_match"),
                     "retailers": live_search["enabled_retailers"],
                     "errors": live_search["errors"],
                 },
