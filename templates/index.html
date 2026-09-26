@@ -182,8 +182,21 @@ body.ai-chat-mode #aiCard{
 body.ai-chat-mode #agentResult{overscroll-behavior:contain}
 body.ai-chat-mode #chat{
   overscroll-behavior:contain;
-  overflow-y:auto;
+  overflow-y:scroll !important;
+  height:100%;
+  min-height:0;
+  scrollbar-width:thin;
+  scrollbar-color:#899a93 #e7ecea;
 }
+body.ai-chat-mode #chat::-webkit-scrollbar{width:10px}
+body.ai-chat-mode #chat::-webkit-scrollbar-track{background:#e7ecea;border-radius:10px}
+body.ai-chat-mode #chat::-webkit-scrollbar-thumb{background:#899a93;border-radius:10px;border:2px solid #e7ecea}
+body.ai-chat-mode #chat::-webkit-scrollbar-thumb:hover{background:#687a73}
+body.ai-chat-mode #agentResult{
+  min-height:0;
+  height:100%;
+}
+
 .ai-focus-active .chatMsg{scroll-margin-top:16px;scroll-margin-bottom:90px}
 .ai-focus-active .chatMsg.ai:last-child .bubble{box-shadow:0 4px 18px rgba(8,45,35,.07)}
 .ai-focus-active #aiBox{
