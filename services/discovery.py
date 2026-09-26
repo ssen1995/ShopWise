@@ -1,1 +1,28 @@
-"""Source-aware discovery ingestion for ByHub.\n\nRecords permitted/manual research observations now and leaves room for\napproved retailer APIs/feeds later. It does not scrape Google Search.\n"""\n\nfrom dataclasses import dataclass\nfrom datetime import datetime, timezone\nfrom database.database import connect\n\n@dataclass\nclass DiscoveryObservation:\n    product_id: str\n    retailer: str\n    price: float\n    url: str\n    source_url: str | None = None\n    source_type: str = "manual_web_research"\n    currency: str = "INR"\n    available: bool = True\n\ndef record_discovery_observation(o: DiscoveryObservation):\n    now = datetime.now(timezone.utc).isoformat()\n    conn = connect()\n    if not conn.execute("SELECT 1 FROM products WHERE id=?", (o.product_id,)).fetchone():\n        conn.close()\n        raise ValueError(f"Unknown product_id: {o.product_id}")\n    conn.execute("""INSERT INTO offers(product_id,retailer,price,url,currency,available,observed_at) VALUES(?,?,?,?,?,?,?)\n    ON CONFLICT(product_id,retailer) DO UPDATE SET price=excluded.price,url=excluded.url,currency=excluded.currency,available=excluded.available,observed_at=excluded.observed_at""", (o.product_id,o.retailer,o.price,o.url,o.currency,int(o.available),now))\n    conn.execute("INSERT INTO price_history(product_id,retailer,price,observed_at) VALUES(?,?,?,?)", (o.product_id,o.retailer,o.price,now))\n    conn.execute("""CREATE TABLE IF NOT EXISTS observation_sources(\n        id INTEGER PRIMARY KEY AUTOINCREMENT, product_id TEXT NOT NULL, retailer TEXT NOT NULL, price REAL NOT NULL,\n        source_type TEXT NOT NULL, source_url TEXT, observed_at TEXT NOT NULL)""")\n    conn.execute("INSERT INTO observation_sources(product_id,retailer,price,source_type,source_url,observed_at) VALUES(?,?,?,?,?,?)", (o.product_id,o.retailer,o.price,o.source_type,o.source_url,now))\n    conn.commit(); conn.close()\n    return {"ok":True,"product_id":o.product_id,"retailer":o.retailer,"price":o.price,"observed_at":now,"source_type":o.source_type,"source_url":o.source_url}\n
+"""Live product discovery across approved retailer APIs."""
+
+from services.amazon import AmazonCreatorsClient
+from services.flipkart import FlipkartAffiliateClient
+
+def search_retailers(query, limit_per_retailer=10, max_price=None):
+    providers = [AmazonCreatorsClient(), FlipkartAffiliateClient()]
+    results, errors, enabled = [], [], []
+    for provider in providers:
+        if not provider.enabled:
+            continue
+        enabled.append(provider.retailer)
+        try:
+            results.extend(provider.search(query, limit_per_retailer, max_price=max_price))
+        except Exception as exc:
+            errors.append({"retailer": provider.retailer, "error": str(exc)[:180]})
+
+    # De-duplicate exact retailer/model results while preserving source truth.
+    seen, unique = set(), []
+    for p in results:
+        key = (p.get("retailer"), (p.get("external_id") or p.get("name") or "").lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(p)
+
+    unique.sort(key=lambda p: (p.get("best_price") is None, p.get("best_price") or 10**18))
+    return {"products": unique, "enabled_retailers": enabled, "errors": errors}
