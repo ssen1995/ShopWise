@@ -204,16 +204,45 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 
 <script>
 function fillAI(text){document.getElementById("aiBox").value=text}
-function askAI(){
-  const q=document.getElementById("aiBox").value.trim().toLowerCase();
+
+async function askAI(){
+  const input=document.getElementById("aiBox");
   const box=document.getElementById("agentResult");
+  const q=input.value.trim();
   if(!q){box.style.display="block";box.textContent="Tell me what you're looking for first.";return}
-  let answer="I found four products in the current ByHub catalog. Use the product cards below to compare the available retailer prices.";
-  if(q.includes("headphone")||q.includes("sony")) answer="Sony WH-1000XM6 is currently ₹39,651 at the lowest observed retailer price. Its stored average is ₹39,139 and published low is ₹34,989.";
-  else if(q.includes("camera")||q.includes("canon")) answer="The Canon EOS R50 + RF-S 18-45mm is currently ₹66,990. Its stored average is ₹65,557 and published low is ₹52,490.";
-  else if(q.includes("phone")||q.includes("samsung")) answer="The Samsung Galaxy S25 256GB is currently ₹79,999. Its stored average is ₹73,112 and published low is ₹62,990.";
-  else if(q.includes("airpod")||q.includes("earbud")) answer="Apple AirPods Pro 3 is currently ₹25,899. Its stored average is ₹24,707 and historical low is ₹17,990.";
-  box.style.display="block";box.textContent=answer;
+  box.style.display="block";
+  box.innerHTML="<strong>ByHub AI is thinking…</strong>";
+  try{
+    const response=await fetch("/api/agent",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({query:q})
+    });
+    if(!response.ok) throw new Error("agent");
+    const data=await response.json();
+    let html="<strong>"+escapeHTML(data.message||"Here's what I found.")+"</strong>";
+    if(data.follow_up) html+="<p style='margin:9px 0 0'>"+escapeHTML(data.follow_up)+"</p>";
+    if(data.products&&data.products.length){
+      html+="<div style='margin-top:13px;display:grid;gap:8px'>";
+      data.products.slice(0,4).forEach(p=>{
+        const price=p.best_price!=null?"₹"+Number(p.best_price).toLocaleString("en-IN"):"Price unavailable";
+        const avg=p.average_price!=null?" · avg ₹"+Number(p.average_price).toLocaleString("en-IN"):"";
+        const trend=p.trend&&p.trend!=="unknown"?" · "+p.trend:"";
+        html+="<div style='background:#fff;border:1px solid #dfe6e2;border-radius:11px;padding:10px'>"+
+          "<b>"+escapeHTML(p.name)+"</b><div style='margin-top:4px;font-weight:900'>"+price+"</div>"+
+          "<div style='font-size:11px;color:#66766f;margin-top:3px'>"+escapeHTML((p.reason||"")+avg+trend)+"</div></div>";
+      });
+      html+="</div>";
+    }
+    box.innerHTML=html;
+  }catch(err){
+    box.textContent="ByHub AI is temporarily unavailable. The product catalog is still available below.";
+  }
+}
+function escapeHTML(value){
+  return String(value??"").replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+  });
 }
 function searchProducts(e){
   e.preventDefault();
