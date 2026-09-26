@@ -4,197 +4,232 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ByHub — Find it. Compare it. Buy smarter.</title>
-<meta name="description" content="ByHub compares retailer prices and puts today's price in historical context.">
+<meta name="description" content="ByHub helps you compare prices, understand price history and decide what to buy.">
 <style>
-:root{--green:#0b6b52;--green2:#084f3e;--ink:#10251f;--cream:#f7f5ef;--paper:#fff;--soft:#edf5f1;--line:#dce5e0;--muted:#687770;--coral:#ef6b4d;--gold:#e9a93a}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{text-decoration:none;color:inherit}button,input,textarea{font:inherit}.nav{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 max(22px,5%);gap:30px;position:sticky;top:0;z-index:20}.logo{font-size:28px;font-weight:950;letter-spacing:-1.4px}.logo span{color:var(--green)}.navlinks{display:flex;gap:22px;flex:1;font-size:14px;color:#52615b}.navlinks a:hover{color:var(--green)}.searchbox{display:flex;gap:8px}.search{width:250px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;outline:none}.search:focus{border-color:#9ebdb2}.btn{border:0;border-radius:11px;background:var(--green);color:#fff;padding:12px 17px;font-weight:850;cursor:pointer}.btn:hover{background:var(--green2)}.btn.secondary{background:#e7f1ed;color:var(--green)}.wrap{max-width:1240px;margin:auto;padding:0 24px}.hero{background:radial-gradient(circle at 80% 20%,#e5f0eb 0,transparent 32%),linear-gradient(180deg,#fff 0,#f7f5ef 100%);padding:70px 0 62px}.heroGrid{display:grid;grid-template-columns:1.02fr .98fr;gap:55px;align-items:center}.eyebrow{color:var(--coral);font-size:12px;font-weight:950;letter-spacing:1.8px}.hero h1{font-size:clamp(46px,6vw,76px);line-height:.96;letter-spacing:-4px;margin:15px 0 22px;max-width:720px}.hero h1 em{font-style:normal;color:var(--green)}.heroLead{font-size:18px;line-height:1.65;color:var(--muted);max-width:650px}.proof{display:flex;gap:22px;flex-wrap:wrap;margin-top:26px;font-size:12px;color:#4f6059}.proof b{color:var(--ink)}.agent{background:#fff;border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:0 24px 70px rgba(14,67,51,.13)}.agentTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.agentTitle{font-size:20px;font-weight:900}.live{font-size:10px;font-weight:900;color:var(--green);background:var(--soft);padding:7px 9px;border-radius:20px}.agent p{font-size:13px;color:var(--muted);margin:0 0 12px}.agent textarea{width:100%;height:112px;border:1px solid var(--line);border-radius:16px;padding:15px;resize:none;outline:none;background:#fcfdfc}.agent textarea:focus{border-color:#9ebdb2}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:11px 0 14px}.chips button{border:0;border-radius:22px;background:#e7f1ed;color:var(--green);padding:9px 12px;font-size:11px;font-weight:850;cursor:pointer}.agentResult{margin-top:16px;border-top:1px solid var(--line);padding-top:16px}.agentCards{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.agentCard{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.agentCard img{width:100%;height:82px;object-fit:contain}.agentCard b{font-size:11px;display:block;line-height:1.3}.agentCard strong{display:block;font-size:16px;margin-top:4px}.signal{font-size:10px;color:var(--green);font-weight:800;margin-top:5px}.section{padding:52px 0}.sectionHeader{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.sectionHeader h2{margin:0;font-size:32px;letter-spacing:-1.2px}.sectionHeader p{margin:6px 0 0;color:var(--muted);font-size:13px}.link{font-size:12px;font-weight:850;color:var(--green)}.cats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.cat{background:#fff;border:1px solid var(--line);border-radius:17px;padding:21px 10px;text-align:center;cursor:pointer;transition:.18s}.cat:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(14,67,51,.07)}.catIcon{font-size:29px}.cat b{display:block;margin-top:9px;font-size:13px}.cat small{color:var(--muted);font-size:10px}.products{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{background:#fff;border:1px solid var(--line);border-radius:19px;overflow:hidden;display:flex;flex-direction:column;min-width:0}.pic{height:210px;background:#f0f4f1;display:grid;place-items:center;padding:17px;cursor:pointer}.pic img{width:100%;height:175px;object-fit:contain}.placeholder{height:175px;width:100%;display:grid;place-items:center;color:#73837c;font-size:12px;font-weight:800;text-align:center}.body{padding:17px;display:flex;flex-direction:column;flex:1}.brandline{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.body h3{font-size:15px;line-height:1.35;margin:5px 0 4px;cursor:pointer}.price{font-size:25px;font-weight:950;letter-spacing:-.8px;margin:9px 0}.mrp{font-size:11px;color:var(--muted)}.compare{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}.offer{background:var(--soft);padding:7px 8px;border-radius:9px;font-size:10px}.offer b{display:block;color:var(--green);margin-top:2px}.cardFoot{margin-top:auto}.shop{display:block;text-align:center;margin-top:10px;background:var(--green);color:#fff;border-radius:10px;padding:11px;font-size:11px;font-weight:900}.detailBtn{display:block;text-align:center;margin-top:7px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;font-weight:850;color:var(--green);cursor:pointer;width:100%}.dark{background:var(--dark);color:#fff}.dark .sectionHeader p{color:#b9d0c7}.dealgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.deal{background:#fff;color:var(--ink);border-radius:18px;padding:20px;border:1px solid rgba(255,255,255,.2)}.dealTop{display:flex;justify-content:space-between;gap:10px}.dealTag{font-size:10px;font-weight:950;color:#b7463b;background:#fff0ed;padding:6px 8px;border-radius:20px;white-space:nowrap}.deal h3{font-size:16px;margin:10px 0}.dealPrice{font-size:23px;font-weight:950}.dealMeta{font-size:11px;color:var(--muted);margin-top:4px}.dealAction{margin-top:15px;color:var(--green);font-size:11px;font-weight:900}.intelGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.intel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:19px}.intel h3{font-size:14px;margin:0 0 7px}.intelPrice{font-size:24px;font-weight:950}.pill{margin-top:11px;padding:9px;border-radius:10px;background:var(--soft);font-size:10px;color:var(--green);font-weight:800}.detailWrap{padding:34px 0 70px}.back{display:inline-flex;gap:6px;color:var(--green);font-weight:850;font-size:12px;margin-bottom:20px;cursor:pointer}.productHero{display:grid;grid-template-columns:390px 1fr;gap:38px;align-items:start}.detailImage{background:#fff;border:1px solid var(--line);border-radius:22px;height:390px;display:grid;place-items:center;padding:25px}.detailImage img{width:100%;height:330px;object-fit:contain}.detailTitle{font-size:40px;letter-spacing:-2px;line-height:1.05;margin:0 0 8px}.detailCategory{color:var(--muted);font-size:13px}.detailPrice{font-size:42px;font-weight:950;margin:18px 0 4px}.detailMrp{font-size:12px;color:var(--muted)}.statRow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.stat small{display:block;color:var(--muted);font-size:10px}.stat b{display:block;margin-top:4px;font-size:15px}.buywait{background:var(--soft);border-radius:15px;padding:15px;margin:15px 0;font-size:12px}.buywait b{color:var(--green)}.retailers{margin-top:28px}.retailer{display:grid;grid-template-columns:1fr auto auto;gap:15px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:8px}.retailerName{font-weight:850}.retailerPrice{font-size:16px;font-weight:950}.chartCard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:26px}.chartHeader{display:flex;justify-content:space-between;align-items:end;gap:10px}.chartHeader h2{margin:0;font-size:23px}.chartHeader span{font-size:10px;color:var(--muted)}.chart{width:100%;height:280px;margin-top:12px}.chart svg{width:100%;height:100%;overflow:visible}.chartNote{font-size:10px;color:var(--muted);margin-top:5px}.empty{padding:35px;text-align:center;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:16px}.footer{background:#0a3429;color:#b8cbc4;padding:38px 0;font-size:11px}.footer b{color:#fff;font-size:21px}.footerGrid{display:flex;justify-content:space-between;gap:30px}.footer p{max-width:720px;line-height:1.6}.hidden{display:none!important}.loading{color:var(--muted);font-size:13px}@media(max-width:980px){.heroGrid,.productHero{grid-template-columns:1fr}.products{grid-template-columns:repeat(2,1fr)}.cats{grid-template-columns:repeat(3,1fr)}.intelGrid{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}.search{width:210px}}@media(max-width:600px){.nav{padding:0 15px;gap:12px}.logo{font-size:23px}.searchbox{flex:1}.search{width:100%}.searchbox .btn{display:none}.hero{padding-top:42px}.hero h1{letter-spacing:-2.5px}.heroLead{font-size:15px}.products,.dealgrid,.intelGrid{grid-template-columns:1fr}.cats{grid-template-columns:repeat(2,1fr)}.agentCards{grid-template-columns:1fr 1fr}.productHero{gap:20px}.detailImage{height:300px}.detailImage img{height:250px}.detailTitle{font-size:31px}.detailPrice{font-size:34px}.statRow{grid-template-columns:repeat(2,1fr)}.retailer{grid-template-columns:1fr auto}.retailer .shop{grid-column:1/-1}.footerGrid{display:block}}
+:root{
+  --green:#08785f;--green-dark:#075543;--ink:#10251f;--muted:#66766f;
+  --cream:#f6f5f0;--white:#fff;--line:#dfe6e2;--orange:#ed7654;
+  --shadow:0 18px 50px rgba(8,45,35,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{text-decoration:none;color:inherit}
+button,input{font:inherit}
+.nav{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:30px;padding:0 5%;position:sticky;top:0;z-index:10}
+.logo{font-size:29px;font-weight:950;letter-spacing:-1.5px}
+.logo span{color:var(--green)}
+.navlinks{display:flex;gap:25px;flex:1;color:#53635d;font-size:14px}
+.navlinks a:hover{color:var(--green)}
+.search{display:flex;gap:8px}
+.search input{width:245px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;outline:0}
+.btn{border:0;border-radius:11px;background:var(--green);color:#fff;font-weight:800;padding:12px 18px;cursor:pointer}
+.btn:hover{background:var(--green-dark)}
+.wrap{max-width:1180px;margin:auto;padding:0 24px}
+.hero{padding:75px 0 70px;background:radial-gradient(circle at 80% 15%,#dfeee8,transparent 30%),linear-gradient(#fff,#f6f5f0)}
+.heroGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:900;color:var(--orange)}
+h1{font-size:clamp(48px,6vw,76px);line-height:.95;letter-spacing:-4px;margin:16px 0 24px}
+h1 em{font-style:normal;color:var(--green)}
+.lead{font-size:18px;line-height:1.65;color:var(--muted);max-width:650px}
+.proof{display:flex;gap:22px;flex-wrap:wrap;margin-top:28px;font-size:12px;font-weight:700;color:#53635d}
+.agent{background:#fff;border:1px solid var(--line);border-radius:25px;padding:25px;box-shadow:var(--shadow)}
+.agentHead{display:flex;justify-content:space-between;align-items:center}
+.agentTitle{font-size:20px;font-weight:900}
+.badge{font-size:10px;background:#e8f3ef;color:var(--green);padding:7px 10px;border-radius:20px;font-weight:900}
+.agent p{font-size:13px;color:var(--muted);line-height:1.5}
+.agent input{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;outline:0;margin:7px 0 10px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+.chips button{border:0;background:#e8f3ef;color:var(--green);padding:8px 11px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer}
+.agentResult{margin-top:15px;padding:14px;background:#f4f8f6;border-radius:14px;font-size:13px;color:#53635d;display:none}
+.section{padding:65px 0}
+.sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:25px}
+.sectionHead h2{font-size:30px;letter-spacing:-1px;margin:0 0 5px}
+.sectionHead p{margin:0;color:var(--muted);font-size:13px}
+.link{color:var(--green);font-weight:800;font-size:13px}
+.categories{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.category{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;cursor:pointer}
+.category:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.icon{font-size:29px;margin-bottom:15px}
+.category b{display:block;font-size:15px}
+.category small{color:var(--muted)}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.2s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.photo{height:220px;background:#f7f8f6;display:flex;align-items:center;justify-content:center;padding:20px}
+.photo img{max-width:100%;max-height:185px;object-fit:contain}
+.body{padding:18px}
+.categoryName{font-size:10px;color:var(--green);font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.card h3{font-size:16px;line-height:1.25;margin:7px 0 12px;min-height:40px}
+.price{font-size:23px;font-weight:950}
+.mrp{font-size:11px;color:var(--muted);margin-top:3px}
+.offers{margin:15px 0;border-top:1px solid #edf1ef;padding-top:10px}
+.offer{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:#53635d}
+.offer b{color:var(--ink)}
+.cardFoot{margin-top:13px}
+.shop{display:block;text-align:center;background:var(--green);color:#fff;border-radius:9px;padding:10px;font-size:12px;font-weight:800}
+.dark{background:#102f27;color:#fff}
+.dark .sectionHead p{color:#afc2bb}
+.deals{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.deal{background:#173d33;border:1px solid #2a544a;border-radius:18px;padding:21px}
+.dealTag{display:inline-block;background:#dff1ea;color:#075543;border-radius:20px;padding:6px 9px;font-size:10px;font-weight:900}
+.deal h3{font-size:17px;line-height:1.3;margin:20px 0 12px}
+.dealPrice{font-size:27px;font-weight:950}
+.dealMeta{font-size:11px;color:#aec1ba;margin-top:5px}
+.deal a{display:block;margin-top:20px;color:#bce3d7;font-size:12px;font-weight:800}
+.intelligence{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.intel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
+.intel h3{font-size:15px;line-height:1.3;margin:0 0 16px}
+.intelPrice{font-size:25px;font-weight:950}
+.signal{display:inline-block;margin-top:11px;padding:7px 9px;background:#e8f3ef;color:var(--green);border-radius:20px;font-size:10px;font-weight:900}
+footer{background:#092e25;color:#b7c9c3;padding:38px 0}
+footer .logo{color:#fff}
+footer p{font-size:11px;line-height:1.6;max-width:700px}
+.hidden{display:none}
+@media(max-width:950px){.heroGrid{grid-template-columns:1fr}.products,.deals,.intelligence{grid-template-columns:repeat(2,1fr)}.categories{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}}
+@media(max-width:600px){.nav{padding:0 15px}.search input{width:150px}.search .btn{display:none}.wrap{padding:0 15px}.hero{padding:48px 0}.hero h1{letter-spacing:-2.5px}.products,.deals,.intelligence,.categories{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <nav class="nav">
-  <a class="logo" href="/">By<span>Hub</span></a>
-  <div class="navlinks">
-    <a href="/#products">Products</a><a href="/#deals">Deals</a><a href="/#categories">Categories</a><a href="/#drops">Price Drops</a>
-  </div>
-  <div class="searchbox"><input id="search" class="search" placeholder="Search products…" autocomplete="off"><button class="btn" onclick="searchProducts()">Search</button></div>
+<a class="logo" href="#">By<span>Hub</span></a>
+<div class="navlinks">
+<a href="#products">Products</a><a href="#deals">Deals</a><a href="#categories">Categories</a><a href="#intelligence">Price Drops</a>
+</div>
+<form class="search" onsubmit="searchProducts(event)">
+<input id="searchBox" placeholder="Search products..." aria-label="Search products">
+<button class="btn">Search</button>
+</form>
 </nav>
 
-<main id="homePage">
 <header class="hero">
 <div class="wrap heroGrid">
-  <div>
-    <div class="eyebrow">AI SHOPPING + PRICE INTELLIGENCE</div>
-    <h1>Find it. Compare it. <em>Buy smarter.</em></h1>
-    <p class="heroLead">ByHub brings retailer prices, deals and historical context together—so you can see what a product costs today and whether today's price is actually interesting.</p>
-    <div class="proof"><span>✓ Retailer comparison</span><span>✓ Price history</span><span>✓ AI-assisted discovery</span></div>
-  </div>
-  <div class="agent">
-    <div class="agentTop"><div class="agentTitle">ByHub AI</div><div class="live">SHOPPING ASSISTANT</div></div>
-    <p>Tell me what you want to buy, your budget, or whether you're wondering if now is a good time to buy.</p>
-    <textarea id="prompt" placeholder="e.g. Find noise cancelling headphones under ₹40,000"></textarea>
-    <div class="chips">
-      <button onclick="fill('Find noise cancelling headphones under ₹40,000')">Find a product</button>
-      <button onclick="fill('Find me good deals')">Find deals</button>
-      <button onclick="fill('Should I buy Sony WH-1000XM6 or wait?')">Buy or wait?</button>
-    </div>
-    <button class="btn" onclick="runAgent()">Ask ByHub AI →</button>
-    <div id="agentResult" class="agentResult hidden">
-      <div id="agentMessage" style="font-size:11px;color:#687770;margin-bottom:10px"></div>
-      <div id="agentCards" class="agentCards"></div>
-    </div>
-  </div>
+<div>
+<div class="eyebrow">AI SHOPPING + PRICE INTELLIGENCE</div>
+<h1>Find it. Compare it. <em>Buy smarter.</em></h1>
+<p class="lead">ByHub brings retailer prices, deals and historical context together — so you can see what a product costs today and understand whether that price is interesting.</p>
+<div class="proof"><span>✓ Retailer comparison</span><span>✓ Price history</span><span>✓ AI-assisted discovery</span></div>
+</div>
+<div class="agent">
+<div class="agentHead"><div class="agentTitle">ByHub AI</div><span class="badge">SHOPPING ASSISTANT</span></div>
+<p>Tell me what you want to buy, your budget, or what you're considering.</p>
+<input id="aiBox" placeholder="e.g. noise cancelling headphones under ₹40,000">
+<div class="chips">
+<button type="button" onclick="fillAI('Find noise cancelling headphones under ₹40,000')">Find a product</button>
+<button type="button" onclick="fillAI('Find me good deals')">Find deals</button>
+<button type="button" onclick="fillAI('Should I buy Sony WH-1000XM6?')">Buy or wait?</button>
+</div>
+<button class="btn" type="button" onclick="askAI()">Ask ByHub AI →</button>
+<div id="agentResult" class="agentResult"></div>
+</div>
 </div>
 </header>
 
 <section id="categories" class="section">
-<div class="wrap"><div class="sectionHeader"><div><h2>Shop by category</h2><p>Start with what you need.</p></div></div><div id="cats" class="cats"></div></div>
+<div class="wrap">
+<div class="sectionHead"><div><h2>Shop by category</h2><p>Start with what you need.</p></div></div>
+<div class="categories">
+<div class="category" onclick="filterCategory('Audio')"><div class="icon">🎧</div><b>Audio</b><small>2 products</small></div>
+<div class="category" onclick="filterCategory('Cameras')"><div class="icon">📷</div><b>Cameras</b><small>1 product</small></div>
+<div class="category" onclick="filterCategory('Mobiles')"><div class="icon">📱</div><b>Mobiles</b><small>1 product</small></div>
+<div class="category"><div class="icon">🛍️</div><b>More categories</b><small>Coming as the catalog grows</small></div>
+</div>
+</div>
 </section>
 
 <section id="products" class="section">
-<div class="wrap"><div class="sectionHeader"><div><h2>Popular products</h2><p>Compare today's observed retailer prices.</p></div><a class="link" href="#products">Browse all →</a></div><div id="productsGrid" class="products"></div></div>
+<div class="wrap">
+<div class="sectionHead"><div><h2>Popular products</h2><p>Current observed retailer prices.</p></div></div>
+<div class="products" id="productGrid">
+
+<article class="card product" data-name="Sony WH-1000XM6" data-category="Audio">
+<div class="photo"><img src="https://m.media-amazon.com/images/I/31gY8Xkp%2B8L.jpg" alt="Sony WH-1000XM6"></div>
+<div class="body"><div class="categoryName">Audio</div><h3>Sony WH-1000XM6</h3><div class="price">₹39,651</div><div class="mrp">MRP ₹49,990</div>
+<div class="offers"><div class="offer"><span>Amazon</span><b>₹39,651</b></div><div class="offer"><span>Flipkart</span><b>₹39,990</b></div></div>
+<a class="shop" href="https://www.amazon.in/s?k=Sony+WH-1000XM6" target="_blank" rel="noopener">View retailer price →</a></div>
+</article>
+
+<article class="card product" data-name="Canon EOS R50" data-category="Cameras">
+<div class="photo"><img src="https://www.billuphotos.com/wp-content/uploads/2024/11/1675814460_IMG_1933024.jpg" alt="Canon EOS R50"></div>
+<div class="body"><div class="categoryName">Cameras</div><h3>Canon EOS R50 + RF-S 18-45mm</h3><div class="price">₹66,990</div><div class="mrp">MRP ₹75,995</div>
+<div class="offers"><div class="offer"><span>Amazon</span><b>₹66,990</b></div></div>
+<a class="shop" href="https://www.amazon.in/s?k=Canon+EOS+R50+18-45mm" target="_blank" rel="noopener">View retailer price →</a></div>
+</article>
+
+<article class="card product" data-name="Samsung Galaxy S25 256GB" data-category="Mobiles">
+<div class="photo"><img src="https://reimg-teknosa-cloud-prod.mncdn.com/mnresize/600/600/productimage/125079836/125079836_0_MC/100328153.png" alt="Samsung Galaxy S25"></div>
+<div class="body"><div class="categoryName">Mobiles</div><h3>Samsung Galaxy S25 256GB</h3><div class="price">₹79,999</div><div class="mrp">MRP ₹84,999</div>
+<div class="offers"><div class="offer"><span>Flipkart</span><b>₹79,999</b></div></div>
+<a class="shop" href="https://www.flipkart.com/search?q=Samsung%20Galaxy%20S25%20256GB" target="_blank" rel="noopener">View retailer price →</a></div>
+</article>
+
+<article class="card product" data-name="Apple AirPods Pro 3" data-category="Audio">
+<div class="photo"><img src="https://m.media-amazon.com/images/I/61SUj2aKoEL._SL1500_.jpg" alt="Apple AirPods Pro 3"></div>
+<div class="body"><div class="categoryName">Audio</div><h3>Apple AirPods Pro 3</h3><div class="price">₹25,899</div><div class="mrp">MRP ₹25,900</div>
+<div class="offers"><div class="offer"><span>Amazon</span><b>₹25,899</b></div></div>
+<a class="shop" href="https://www.amazon.in/s?k=AirPods+Pro+3" target="_blank" rel="noopener">View retailer price →</a></div>
+</article>
+
+</div>
+</div>
 </section>
 
 <section id="deals" class="section dark">
-<div class="wrap"><div class="sectionHeader"><div><h2>⚡ Deals worth investigating</h2><p>A low MRP discount doesn't automatically make a good deal. ByHub adds historical context.</p></div></div><div id="dealsGrid" class="dealgrid"></div></div>
-</section>
-
-<section id="drops" class="section">
-<div class="wrap"><div class="sectionHeader"><div><h2>📉 Price intelligence</h2><p>See how today's price compares with ByHub's stored context.</p></div></div><div id="intelGrid" class="intelGrid"></div></div>
-</section>
-</main>
-
-<main id="productPage" class="hidden">
-<section class="detailWrap">
 <div class="wrap">
-  <div class="back" onclick="goHome()">← Back to ByHub</div>
-  <div id="detailContent"></div>
+<div class="sectionHead"><div><h2>⚡ Deals worth investigating</h2><p>Discounts are only the beginning. Compare them with historical context.</p></div></div>
+<div class="deals">
+<div class="deal"><span class="dealTag">20% below MRP</span><h3>Sony WH-1000XM6</h3><div class="dealPrice">₹39,651</div><div class="dealMeta">Stored average ₹39,139 · published low ₹34,989</div><a href="#products">Inspect product →</a></div>
+<div class="deal"><span class="dealTag">12% below MRP</span><h3>Canon EOS R50</h3><div class="dealPrice">₹66,990</div><div class="dealMeta">Stored average ₹65,557 · published low ₹52,490</div><a href="#products">Inspect product →</a></div>
+<div class="deal"><span class="dealTag">Below stored average</span><h3>Apple AirPods Pro 3</h3><div class="dealPrice">₹25,899</div><div class="dealMeta">Stored average ₹24,707 · historical low ₹17,990</div><a href="#products">Inspect product →</a></div>
+<div class="deal"><span class="dealTag">Compare history</span><h3>Samsung Galaxy S25 256GB</h3><div class="dealPrice">₹79,999</div><div class="dealMeta">Stored average ₹73,112 · historical low ₹62,990</div><a href="#products">Inspect product →</a></div>
+</div>
 </div>
 </section>
-</main>
 
-<footer class="footer">
-<div class="wrap footerGrid"><div><b>ByHub</b><p>AI shopping, product discovery, retailer comparison and price intelligence.</p></div><div><p>Prices and availability can change. Current production integrations should use approved retailer APIs/feeds and permitted product imagery.</p></div></div>
+<section id="intelligence" class="section">
+<div class="wrap">
+<div class="sectionHead"><div><h2>📉 Price intelligence</h2><p>Today's price compared with stored historical context.</p></div></div>
+<div class="intelligence">
+<div class="intel"><h3>Sony WH-1000XM6</h3><div class="intelPrice">₹39,651</div><span class="signal">2.0% above average</span></div>
+<div class="intel"><h3>Canon EOS R50</h3><div class="intelPrice">₹66,990</div><span class="signal">2.2% above average</span></div>
+<div class="intel"><h3>Samsung Galaxy S25 256GB</h3><div class="intelPrice">₹79,999</div><span class="signal">9.4% above average</span></div>
+<div class="intel"><h3>Apple AirPods Pro 3</h3><div class="intelPrice">₹25,899</div><span class="signal">4.8% above average</span></div>
+</div>
+</div>
+</section>
+
+<footer>
+<div class="wrap"><div class="logo">By<span>Hub</span></div><p>AI shopping, product discovery, retailer comparison and price intelligence. Prices and availability can change; retailer integrations should use approved APIs or feeds.</p></div>
 </footer>
 
-<script src="/static/fallback.js"></script>
 <script>
-const money=n=>n==null?'—':'₹'+Number(n).toLocaleString('en-IN');
-const BYHUB_PRODUCTS = [
-{id:"sony-wh1000xm6",name:"Sony WH-1000XM6",category:"Audio",image:"https://sony.scene7.com/is/image/sonyglobalsolutions/GGB-8071_Olive_Gray_Gallery-1?$originalDimensions$",mrp:49990,avg:39139,low:34989,tracked_days:361,best_price:39651,offers:[{retailer:"Amazon",price:39651,url:"https://www.amazon.in/s?k=Sony+WH-1000XM6"},{retailer:"Flipkart",price:39990,url:"https://www.flipkart.com/sony-wh-1000xm6-wireless-noise-cancellation-ai-reduction-bluetooth-wired/p/itmd27e0df955122"}]},
-{id:"canon-eos-r50",name:"Canon EOS R50 + RF-S 18-45mm",category:"Cameras",image:"https://heyjimmy.in/wp-content/uploads/2023/03/Canon-EOS-R50-Mirrorless-Camera-with-RF-S18-45mm-F4.5-6.3-IS-STM-Lens-Online-Buy-Mumbai-India.jpg",mrp:75995,avg:65557,low:52490,tracked_days:1244,best_price:66990,offers:[{retailer:"Amazon",price:66990,url:"https://www.amazon.in/s?k=Canon+EOS+R50+18-45mm"}]},
-{id:"samsung-s25-256",name:"Samsung Galaxy S25 256GB",category:"Mobiles",image:"https://reimg-teknosa-cloud-prod.mncdn.com/mnresize/600/600/productimage/125079836/125079836_0_MC/100328153.png",mrp:84999,avg:73112,low:62990,tracked_days:394,best_price:79999,offers:[{retailer:"Flipkart",price:79999,url:"https://www.flipkart.com/search?q=Samsung%20Galaxy%20S25%20256GB"}]},
-{id:"airpods-pro-3",name:"Apple AirPods Pro 3",category:"Audio",image:"https://m.media-amazon.com/images/I/61SUj2aKoEL._SL1500_.jpg",mrp:25900,avg:24707,low:17990,tracked_days:338,best_price:25899,offers:[{retailer:"Amazon",price:25899,url:"https://www.amazon.in/s?k=AirPods+Pro+3"}]}
-];
-const BYHUB_CATEGORIES=[{category:"Audio",count:2},{category:"Cameras",count:1},{category:"Mobiles",count:1}];
-
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const img=url=>url?'/api/image-proxy?url='+encodeURIComponent(url):'';
-const iconFor=c=>({Audio:'🎧',Cameras:'📷',Mobiles:'📱',Laptops:'💻',Gaming:'🎮',Televisions:'📺'})[c]||'🛍️';
-function fill(q){document.getElementById('prompt').value=q}
-function fallbackImage(name){return '<div class="placeholder">'+iconFor((name||'').split(' ')[0])+'<br>'+esc(name)+'</div>'}
-function productCard(p){
- const offers=p.offers||[];
- return '<article class="card"><div class="pic" onclick="openProduct(\''+esc(p.id)+'\')">'+
-   (p.image?'<img src="'+img(p.image)+'" alt="'+esc(p.name)+'" onerror="this.outerHTML=fallbackImage(\''+esc(p.name).replace(/'/g,"\\'")+'\')">':fallbackImage(p.name))+
-   '</div><div class="body"><div class="brandline">'+esc(p.category||'Product')+'</div><h3 onclick="openProduct(\''+esc(p.id)+'\')">'+esc(p.name)+'</h3>'+
-   '<div class="price">'+money(p.best_price)+'</div><div class="mrp">'+(p.mrp?'MRP '+money(p.mrp):'')+'</div>'+
-   '<div class="compare">'+offers.map(o=>'<span class="offer">'+esc(o.retailer)+' <b>'+money(o.price)+'</b></span>').join('')+'</div>'+
-   '<div class="cardFoot"><a class="shop" href="'+esc(offers[0]?.url||'#')+'" target="_blank" rel="noopener">View retailer price →</a><button class="detailBtn" onclick="openProduct(\''+esc(p.id)+'\')">See price history & details</button></div></div></article>'
+function fillAI(text){document.getElementById("aiBox").value=text}
+function askAI(){
+  const q=document.getElementById("aiBox").value.trim().toLowerCase();
+  const box=document.getElementById("agentResult");
+  if(!q){box.style.display="block";box.textContent="Tell me what you're looking for first.";return}
+  let answer="I found four products in the current ByHub catalog. Use the product cards below to compare the available retailer prices.";
+  if(q.includes("headphone")||q.includes("sony")) answer="Sony WH-1000XM6 is currently ₹39,651 at the lowest observed retailer price. Its stored average is ₹39,139 and published low is ₹34,989.";
+  else if(q.includes("camera")||q.includes("canon")) answer="The Canon EOS R50 + RF-S 18-45mm is currently ₹66,990. Its stored average is ₹65,557 and published low is ₹52,490.";
+  else if(q.includes("phone")||q.includes("samsung")) answer="The Samsung Galaxy S25 256GB is currently ₹79,999. Its stored average is ₹73,112 and published low is ₹62,990.";
+  else if(q.includes("airpod")||q.includes("earbud")) answer="Apple AirPods Pro 3 is currently ₹25,899. Its stored average is ₹24,707 and historical low is ₹17,990.";
+  box.style.display="block";box.textContent=answer;
 }
-async function loadHome(){
-  let ps=BYHUB_PRODUCTS, cs=BYHUB_CATEGORIES;
-  try{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),3500);
-    const [pr,cr]=await Promise.all([
-      fetch('/api/products?limit=24',{signal:controller.signal}),
-      fetch('/api/categories',{signal:controller.signal})
-    ]);
-    clearTimeout(timer);
-    if(pr.ok){const x=await pr.json(); if(Array.isArray(x)&&x.length) ps=x;}
-    if(cr.ok){const x=await cr.json(); if(Array.isArray(x)&&x.length) cs=x;}
-  }catch(e){}
-  renderCats(cs); renderProducts(ps);
+function searchProducts(e){
+  e.preventDefault();
+  const q=document.getElementById("searchBox").value.trim().toLowerCase();
+  document.querySelectorAll(".product").forEach(card=>{
+    const text=(card.dataset.name+" "+card.dataset.category).toLowerCase();
+    card.style.display=(!q||text.includes(q))?"block":"none";
+  });
+  document.getElementById("products").scrollIntoView({behavior:"smooth"});
 }
-function renderCats(cs){
- document.getElementById('cats').innerHTML=(cs||[]).map(x=>'<div class="cat" onclick="searchCat('+JSON.stringify(x.category)+')"><div class="catIcon">'+iconFor(x.category)+'</div><b>'+esc(x.category)+'</b><small>'+x.count+' product'+(x.count===1?'':'s')+'</small></div>').join('')||'<div class="empty">Categories will appear as products are added.</div>';
+function filterCategory(category){
+  document.querySelectorAll(".product").forEach(card=>{
+    card.style.display=card.dataset.category===category?"block":"none";
+  });
+  document.getElementById("products").scrollIntoView({behavior:"smooth"});
 }
-function searchCat(c){location.hash='products';fetch('/api/products?category='+encodeURIComponent(c)).then(r=>r.json()).then(renderProducts)}
-function renderProducts(ps){
- document.getElementById('productsGrid').innerHTML=(ps||[]).map(productCard).join('')||'<div class="empty">No products found.</div>';
- const deals=(ps||[]).map(p=>({...p,discount:p.mrp&&p.best_price?(1-p.best_price/p.mrp)*100:0})).sort((a,b)=>b.discount-a.discount).slice(0,6);
- document.getElementById('dealsGrid').innerHTML=deals.map(p=>{
-   const gap=p.avg&&p.best_price?(p.best_price-p.avg)/p.avg*100:null;
-   const tag=gap!==null&&gap<=0?'Below average':(p.discount>=15?'High MRP discount':'Compare history');
-   return '<div class="deal"><div class="dealTop"><span style="font-size:11px;color:#687770">'+esc(p.category)+'</span><span class="dealTag">'+tag+'</span></div><h3>'+esc(p.name)+'</h3><div class="dealPrice">'+money(p.best_price)+'</div><div class="dealMeta">'+(p.mrp?'MRP '+money(p.mrp)+' · '+Math.round(p.discount)+'% below MRP':'Current retailer price')+'</div><div class="dealAction" onclick="openProduct(\''+esc(p.id)+'\')">Inspect price history →</div></div>'
- }).join('');
- document.getElementById('intelGrid').innerHTML=(ps||[]).slice(0,8).map(p=>{
-   const gap=p.avg&&p.best_price?(p.best_price-p.avg)/p.avg*100:null;
-   const text=gap===null?'Limited context':gap<=0?'Below stored average by '+Math.abs(gap).toFixed(1)+'%':'Above stored average by '+gap.toFixed(1)+'%';
-   return '<div class="intel" onclick="openProduct(\''+esc(p.id)+'\')" style="cursor:pointer"><h3>'+esc(p.name)+'</h3><div class="intelPrice">'+money(p.best_price)+'</div><div class="pill">'+text+'</div></div>'
- }).join('');
-}
-async function runAgent(){
- const q=document.getElementById('prompt').value.trim(); if(!q)return;
- const btn=document.querySelector('.agent .btn'); btn.disabled=true; btn.textContent='Thinking…';
- try{
-  const r=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
-  const d=await r.json();
-  document.getElementById('agentResult').classList.remove('hidden');
-  document.getElementById('agentMessage').textContent=d.message||'';
-  document.getElementById('agentCards').innerHTML=(d.products||[]).map(p=>'<div class="agentCard">'+(p.image?'<img src="'+img(p.image)+'" onerror="this.style.display=\'none\'">':'')+'<b>'+esc(p.name)+'</b><strong>'+money(p.best_price)+'</strong><div class="signal">'+esc(p.signal||'Compare history')+'</div><button class="detailBtn" onclick="openProduct(\''+esc(p.id)+'\')">Open →</button></div>').join('')||'<div class="empty">No close matches in the current catalog.</div>';
- }catch(e){document.getElementById('agentMessage').textContent='ByHub AI is temporarily unavailable.'}
- btn.disabled=false;btn.textContent='Ask ByHub AI →';
-}
-async function searchProducts(){
- const q=document.getElementById('search').value.trim();
- if(!q){location.href='/#products';return}
- const r=await fetch('/api/search?q='+encodeURIComponent(q)); const ps=await r.json();
- document.getElementById('homePage').classList.remove('hidden'); document.getElementById('productPage').classList.add('hidden');
- renderProducts(ps); location.hash='products'; document.getElementById('products').scrollIntoView();
-}
-async function openProduct(pid,push=true){
- if(push) history.pushState({},'', '/product/'+encodeURIComponent(pid));
- document.getElementById('homePage').classList.add('hidden'); document.getElementById('productPage').classList.remove('hidden');
- document.getElementById('detailContent').innerHTML='<div class="loading">Loading product intelligence…</div>';
- window.scrollTo({top:0,behavior:'smooth'});
- const [p,i]=await Promise.all([fetch('/api/products/'+encodeURIComponent(pid)).then(r=>r.json()),fetch('/api/price-intelligence/'+encodeURIComponent(pid)).then(r=>r.json())]);
- renderDetail(p,i);
-}
-function renderDetail(p,i){
- const offers=p.offers||[];
- const gap=i.vs_average_pct;
- let status=gap===null?'Limited data':gap<=0?'Below stored average':gap<5?'Close to average':'Above stored average';
- document.getElementById('detailContent').innerHTML=
- '<div class="productHero"><div class="detailImage">'+(p.image?'<img src="'+img(p.image)+'" alt="'+esc(p.name)+'" onerror="this.outerHTML=fallbackImage(\''+esc(p.name).replace(/'/g,"\\'")+'\')">':fallbackImage(p.name))+'</div>'+
- '<div><div class="detailCategory">'+esc(p.category)+'</div><h1 class="detailTitle">'+esc(p.name)+'</h1><div class="detailPrice">'+money(p.best_price)+'</div><div class="detailMrp">'+(p.mrp?'MRP '+money(p.mrp)+' · '+(i.below_mrp_pct||0).toFixed(0)+'% below MRP':'')+'</div>'+
- '<div class="statRow"><div class="stat"><small>Stored average</small><b>'+money(i.average_price)+'</b></div><div class="stat"><small>Published low</small><b>'+money(i.reported_low)+'</b></div><div class="stat"><small>Observed chart low</small><b>'+money(i.observed_chart_low)+'</b></div><div class="stat"><small>Tracked</small><b>'+esc(String(p.tracked_days||'—'))+' days</b></div></div>'+
- '<div class="buywait"><b>'+status+'.</b> '+(gap===null?'The catalog needs more observations before a stronger price-position signal can be made.':gap<=0?'Today is at or below the stored average; the chart shows how far it is from observed lows.':'Today is above the stored average, so checking the price history before buying may be useful.')+'</div>'+
- '<div class="retailers"><h3>Retailer prices</h3>'+offers.map(o=>'<div class="retailer"><div class="retailerName">'+esc(o.retailer)+'</div><div class="retailerPrice">'+money(o.price)+'</div><a class="shop" href="'+esc(o.url)+'" target="_blank" rel="noopener">Shop →</a></div>').join('')+'</div></div></div>'+
- '<div class="chartCard"><div class="chartHeader"><h2>Price history</h2><span>'+i.observations+' ByHub-stored observations · historical reference spans '+esc(String(p.tracked_days||0))+' days</span></div><div id="chart" class="chart"></div><div class="chartNote">Chart points are observations currently stored by ByHub. The published low/average may reflect a longer tracking record than the charted observations.</div><p style="margin-top:12px"><a class="link" href="'+esc(p.history_url||'#')+'" target="_blank" rel="noopener">View historical source →</a></p></div>';
- drawChart(i.chart,i.average_price,i.reported_low,i.current_price);
-}
-function drawChart(points,avg,low,current){
- const el=document.getElementById('chart'); if(!el||!points?.length){if(el)el.innerHTML='<div class="empty">Not enough observations for a chart yet.</div>';return}
- const W=900,H=270,P={l:58,r:20,t:20,b:38}; const vals=points.map(x=>x.price);
- const min=Math.min(...vals,low||Infinity),max=Math.max(...vals,current||0,avg||0); const range=Math.max(max-min,1);
- const x=k=>P.l+(k/(points.length-1||1))*(W-P.l-P.r), y=v=>P.t+(1-(v-min)/range)*(H-P.t-P.b);
- const path=points.map((p,k)=>(k?'L':'M')+x(k).toFixed(1)+' '+y(p.price).toFixed(1)).join(' ');
- const grid=[0,.5,1].map(t=>{const v=min+range*t;return '<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#e5ece8"/><text x="0" y="'+(y(v)+4)+'" font-size="11" fill="#718078">'+money(v)+'</text>'}).join('');
- const dots=points.map((p,k)=>'<circle cx="'+x(k)+'" cy="'+y(p.price)+'" r="4" fill="#0b6b52"><title>'+p.date+' · '+money(p.price)+'</title></circle>').join('');
- const avgLine=avg?'<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="#e9a93a" stroke-dasharray="6 5"/><text x="'+(W-P.r-105)+'" y="'+(y(avg)-6)+'" font-size="10" fill="#a16e12">avg '+money(avg)+'</text>':'';
- el.innerHTML='<svg viewBox="0 0 '+W+' '+H" role="img" aria-label="Price history chart">'+grid+avgLine+'<path d="'+path+'" fill="none" stroke="#0b6b52" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg>';
-}
-function goHome(){history.pushState({},'', '/');document.getElementById('productPage').classList.add('hidden');document.getElementById('homePage').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
-window.addEventListener('popstate',route);
-function route(){
- const m=location.pathname.match(/^\/product\/([^/]+)/);
- if(m){openProduct(decodeURIComponent(m[1]),false);return}
- document.getElementById('productPage').classList.add('hidden');document.getElementById('homePage').classList.remove('hidden');
-}
-document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')searchProducts()});
-loadHome();
-if(location.pathname!=='/') route();
 </script>
 </body>
 </html>
