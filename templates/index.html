@@ -174,22 +174,15 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
   scroll-behavior:smooth;
 }
 .ai-focus-active #chat{touch-action:pan-y}
-body.ai-chat-mode{overflow:hidden}
-body.ai-chat-mode .hero{
-  overflow:visible;
-}
-body.ai-chat-mode .heroGrid{
-  min-height:calc(100vh - 72px);
-}
+body.ai-chat-mode .hero{overflow:visible}
 body.ai-chat-mode #aiCard{
   height:min(680px,calc(100vh - 150px));
-  max-height:calc(100vh - 150px);
+  max-height:680px;
 }
-body.ai-chat-mode #agentResult{
-  overscroll-behavior:contain;
-}
+body.ai-chat-mode #agentResult{overscroll-behavior:contain}
 body.ai-chat-mode #chat{
   overscroll-behavior:contain;
+  overflow-y:auto;
 }
 .ai-focus-active .chatMsg{scroll-margin-top:16px;scroll-margin-bottom:90px}
 .ai-focus-active .chatMsg.ai:last-child .bubble{box-shadow:0 4px 18px rgba(8,45,35,.07)}
@@ -382,20 +375,7 @@ function scrollChatToLatest(){
     if(last) last.scrollIntoView({behavior:"smooth",block:"end"});
   });
 }
-(function setupChatWheel(){
-  const chat=document.getElementById("chat");
-  if(!chat) return;
-  chat.addEventListener("wheel", function(e){
-    if(!document.body.classList.contains("ai-chat-mode")) return;
-    const atTop=this.scrollTop<=0;
-    const atBottom=this.scrollTop+this.clientHeight>=this.scrollHeight-1;
-    const down=e.deltaY>0;
-    if((down && !atBottom) || (!down && !atTop)){
-      e.preventDefault();
-      this.scrollTop += e.deltaY;
-    }
-  }, {passive:false});
-})();
+
 function addChatMessage(role, html){
   activateAIFocus();
   const chat=document.getElementById("chat");
