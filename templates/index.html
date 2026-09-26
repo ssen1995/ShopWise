@@ -104,8 +104,34 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 </style>
 <style>
 /* ByHub AI focus mode: once conversation starts, the chat becomes the visual protagonist. */
+.ai-focus-active{
+  grid-template-columns:1fr !important;
+  gap:18px !important;
+  align-items:start !important;
+}
+.ai-focus-active > div:first-child{
+  max-width:900px;
+}
+.ai-focus-active > div:first-child .eyebrow{
+  font-size:10px;
+}
+.ai-focus-active > div:first-child h1{
+  font-size:30px;
+  letter-spacing:-1.5px;
+  margin:5px 0 8px;
+}
+.ai-focus-active > div:first-child .lead{
+  font-size:12px;
+  line-height:1.4;
+  max-width:850px;
+}
+.ai-focus-active > div:first-child .proof{
+  display:none;
+}
 .ai-focus-active #aiCard{
-  position: relative;
+  position:relative;
+  width:100%;
+  padding:28px;
 }
 .ai-focus-active #aiCard .aiIntro{
   font-size: 13px !important;
@@ -156,14 +182,14 @@ footer p{font-size:11px;line-height:1.6;max-width:700px}
 </nav>
 
 <header class="hero">
-<div class="wrap heroGrid">
+<div class="wrap heroGrid" id="heroGrid">
 <div>
 <div class="eyebrow">AI SHOPPING + PRICE INTELLIGENCE</div>
 <h1>Find it. Compare it. <em>Buy smarter.</em></h1>
 <p class="lead">ByHub brings retailer prices, deals and historical context together — so you can see what a product costs today and understand whether that price is interesting.</p>
 <div class="proof"><span>✓ Retailer comparison</span><span>✓ Price history</span><span>✓ AI-assisted discovery</span></div>
 </div>
-<div class="agent">
+<div class="agent" id="aiCard">
 <div class="agentHead"><div class="agentTitle">ByHub AI</div><span class="badge">SHOPPING ASSISTANT</span></div>
 <p>Tell me what you want to buy, your budget, or what you're considering.</p>
 <input id="aiBox" placeholder="e.g. noise cancelling headphones under ₹40,000">
@@ -269,6 +295,7 @@ function fillAI(text){
 }
 
 function activateAIFocus(){
+  document.getElementById("heroGrid")?.classList.add("ai-focus-active");
   document.getElementById("aiCard")?.classList.add("ai-focus-active");
 }
 function addChatMessage(role, html){
