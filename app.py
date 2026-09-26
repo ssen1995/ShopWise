@@ -166,6 +166,10 @@ def products(q: Optional[str] = None, category: Optional[str] = None, limit: int
     c.close()
     return [product_dict(r) for r in rows]
 
+@app.get("/api/search")
+def ranked_search(q: Optional[str] = None, category: Optional[str] = None, limit: int = 24):
+    return search_ranked(q, category, limit)
+
 @app.get("/api/categories")
 def get_categories():
     from services.products import categories
